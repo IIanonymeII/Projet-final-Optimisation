@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 import random
 
-from src.algo.test import Simulations
+from src.algo.both_prog import Simulations
 from src.interface.puissance_total_window import RealTimePlotApp
 from src.interface.puissance_all_turbine_window import RealTimePlotAppMulti
 
@@ -40,7 +40,7 @@ class MainApp:
         self.iterations_max = None
         self.test = None
 
-        self.multi_sim = Simulations(FILENAME, ["ProgDyn"])
+        self.multi_sim = Simulations(FILENAME, ["ProgDyn","BB"])
 
 
 
@@ -95,6 +95,14 @@ class MainApp:
                 original_puissance_turbine_4 = df_dyn_result.at["Original","Puissance T4"]
                 original_puissance_turbine_5 = df_dyn_result.at["Original","Puissance T5"]
 
+                
+                nomad_puissance_total = df_dyn_result.at["Computed BB","Puissance totale"]
+                nomad_puissance_turbine_1 = df_dyn_result.at["Computed BB","Puissance T1"]
+                nomad_puissance_turbine_2 = df_dyn_result.at["Computed BB","Puissance T2"]
+                nomad_puissance_turbine_3 = df_dyn_result.at["Computed BB","Puissance T3"]
+                nomad_puissance_turbine_4 = df_dyn_result.at["Computed BB","Puissance T4"]
+                nomad_puissance_turbine_5 = df_dyn_result.at["Computed BB","Puissance T5"]
+
 
 
                 dyn_debit_total = df_dyn_result.at["Computed ProgDyn","Débit disponible"]
@@ -111,8 +119,15 @@ class MainApp:
                 original_debit_turbine_4 = df_dyn_result.at["Original","Débit T4"]        
                 original_debit_turbine_5 = df_dyn_result.at["Original","Débit T5"]
 
+                nomad_debit_total = df_dyn_result.at["Computed BB","Débit disponible"]
+                nomad_debit_turbine_1 = df_dyn_result.at["Computed BB","Débit T1"]
+                nomad_debit_turbine_2 = df_dyn_result.at["Computed BB","Débit T2"]
+                nomad_debit_turbine_3 = df_dyn_result.at["Computed BB","Débit T3"]
+                nomad_debit_turbine_4 = df_dyn_result.at["Computed BB","Débit T4"]        
+                nomad_debit_turbine_5 = df_dyn_result.at["Computed BB","Débit T5"]
 
-                self.test.add_value(x=self.current_iteration, y=dyn_puissance_total, y_2=original_puissance_total)
+
+                self.test.add_value(x=self.current_iteration, y_dyn=dyn_puissance_total, y_original=original_puissance_total, y_bb=nomad_puissance_total)
                 self.status_label.config(
                     text=f"Statut de la simulation : En cours ({self.current_iteration}/{self.iterations_max})"
                 )

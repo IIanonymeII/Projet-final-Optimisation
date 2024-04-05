@@ -2,12 +2,11 @@ from time import time
 from typing import Iterator, List, Tuple
 import numpy as np
 import pandas as pd
-# from TestBlackBox import TestBlackBox
-import src.algo.programmationDynamique as progDyn
+
+from src.algo.programmation_black_box import TestBlackBox
+import src.algo.programmation_dynamique as progDyn
 
 class Simulations:
-    
-
 
     def __init__(self, file_name: str, simulationTypes: List[str]) -> None:
         """
@@ -61,29 +60,6 @@ class Simulations:
         active_turbines = [bool(self.df[f'P{i} (MW)'][0]) for i in range(1, 6)]
         return debit_total, niveau_amont, active_turbines
     
-    @staticmethod
-    def init_result_df() -> pd.DataFrame:
-        df_result = pd.DataFrame(index=["Original", "Computed"], columns = ["Débit disponible", "Puissance totale"])
-        df_result.loc[:, "Puissance totale"] = 0
-        return df_result
-
-    def initialize_result_df(self, debit_total) -> pd.DataFrame:
-        df_result = self.init_result_df()
-
-        df_result.at["Original", "Débit disponible"] = debit_total
-        df_result.at["Computed", "Débit disponible"] = debit_total
-        
-        puissance_totale = 0
-        for i in range(1, 5+1, 1):
-            df_result.loc["Original", f"Débit T{i}"] = self.df[f"Q{i} (m3/s)"][0]
-            df_result.loc["Original", f"Puissance T{i}"] = self.df[f"P{i} (MW)"][0]
-            df_result.loc["Computed", f"Débit T{i}"] = 0
-            df_result.loc["Computed", f"Puissance T{i}"] = 0
-            puissance_totale += self.df[f"P{i} (MW)"][0]
-
-        
-        df_result.at["Original", "Puissance totale"] = puissance_totale
-        return df_result
     
     def run_prog_dyn(self, debit_total, niveau_amont, active_turbines_bool) -> pd.DataFrame:
         """
@@ -128,13 +104,19 @@ class Simulations:
             self.df = next(rows)
             
             debit_total, niveau_amont, active_turbines = self.get_data_from_excel()
-            df_result = self.initialize_result_df(debit_total=debit_total)
-            for sheet_name in self.simulationTypes:
-                if sheet_name == "ProgDyn":
-                    df_resultDyn = self.run_prog_dyn(debit_total, niveau_amont, active_turbines)
-                    row = df_resultDyn.loc[['Computed']].rename(index={'Computed': 'Computed ProgDyn'})
-                    df_result = pd.concat([df_result, row])
-                    return df_result
+
+            bb = TestBlackBox(debit_total, niveau_amont, active_turbines, self.df.iloc[0], 200)
+            time, puissances = bb.run()
+            self.results["BB"]["time_data"].append(time)
+            df_result = bb.df_result
+            df_result = df_result.rename(index={'Computed': 'Computed BB'})
+            if "ProgDyn" in self.simulationTypes:
+
+                df_resultDyn = self.run_prog_dyn(debit_total, niveau_amont, active_turbines)
+                row = df_resultDyn.loc[['Computed']].rename(index={'Computed': 'Computed ProgDyn'})
+                df_result = pd.concat([df_result, row])
+
+            return df_result
                     
 
 
