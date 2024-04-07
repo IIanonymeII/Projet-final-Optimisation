@@ -48,6 +48,39 @@ class Simulations:
                   'Hauteur nette 5']
         yield pd.read_excel(filename, skiprows=end_row, nrows=1, names=header)
 
+    @staticmethod
+    def default_panda_return():
+        data = {
+            'Unnamed: 0': [0],
+            'Elav (m)': [0],
+            'Qtot (m3/s)': [0],
+            'Qturb (m3/s)': [0],
+            'Qvan (m3/s)': [0],
+            'Niv Amont (m)': [0],
+            'Q1 (m3/s)': [0],
+            'P1 (MW)': [0],
+            'Q2 (m3/s)': [0],
+            'P2 (MW)': [0],
+            'Q3 (m3/s)': [0],
+            'P3 (MW)': [0],
+            'Q4 (m3/s)': [0],
+            'P4 (MW)': [0],
+            'Q5 (m3/s)': [0],
+            'P5 (MW)': [0],
+            'Perte 1 (m)': [0],
+            'Perte 2 (m)': [0],
+            'Perte 3 (m)': [0],
+            'Perte 4 (m)': [0],
+            'Perte 5 (m)': [0],
+            'Hauteur nette 1': [0],
+            'Hauteur nette 2': [0],
+            'Hauteur nette 3': [0],
+            'Hauteur nette 4': [0],
+            'Hauteur nette 5': [0]
+        }
+        return pd.DataFrame(data)
+
+
     def get_data_from_excel(self) -> Tuple[float, float, list[bool]]:
         """
         Récupère les données nécessaires depuis le DataFrame.
@@ -119,6 +152,22 @@ class Simulations:
             return df_result
                     
 
+    def calcul_exemple(self, debit_total: float, niveau_amont: float, active_turbines) -> pd.DataFrame:
+        
+        self.df = self.default_panda_return()
+        bb = TestBlackBox(debit_total, niveau_amont, active_turbines, self.df.iloc[0], 200)
+        time, puissances = bb.run()
+        self.results["BB"]["time_data"].append(time)
+        df_result = bb.df_result
+        df_result = df_result.rename(index={'Computed': 'Computed BB'})
+        if "ProgDyn" in self.simulationTypes:
+
+            df_resultDyn = self.run_prog_dyn(debit_total, niveau_amont, active_turbines)
+            row = df_resultDyn.loc[['Computed']].rename(index={'Computed': 'Computed ProgDyn'})
+            df_result = pd.concat([df_result, row])
+
+        return df_result
+
 
 
 
@@ -132,31 +181,36 @@ if __name__ == "__main__":
     ROW_COUNT = 3
 
     multi_sim = Simulations(FILENAME, ["ProgDyn"])
+    # ===============
+    #      EXCEL
+    # ===============
 
-    for row_index in range(STARTING_ROW, ROW_COUNT+1,1):
-        df_dyn_result = multi_sim.calcul_row(row_columns_index=STARTING_ROW, row_to_calculate=row_index)
-        print(df_dyn_result)
-        puissance_total = df_dyn_result.at["Computed","Puissance totale"]
-        puissance_turbine_1 = df_dyn_result.at["Computed","Puissance T1"]
-        puissance_turbine_2 = df_dyn_result.at["Computed","Puissance T2"]
-        puissance_turbine_3 = df_dyn_result.at["Computed","Puissance T3"]
-        puissance_turbine_4 = df_dyn_result.at["Computed","Puissance T4"]
-        puissance_turbine_5 = df_dyn_result.at["Computed","Puissance T5"]
+    # for row_index in range(STARTING_ROW, ROW_COUNT+1,1):
+    #     df_dyn_result = multi_sim.calcul_row(row_columns_index=STARTING_ROW, row_to_calculate=row_index)
+    #     print(df_dyn_result)
+    #     puissance_total = df_dyn_result.at["Computed","Puissance totale"]
+    #     puissance_turbine_1 = df_dyn_result.at["Computed","Puissance T1"]
+    #     puissance_turbine_2 = df_dyn_result.at["Computed","Puissance T2"]
+    #     puissance_turbine_3 = df_dyn_result.at["Computed","Puissance T3"]
+    #     puissance_turbine_4 = df_dyn_result.at["Computed","Puissance T4"]
+    #     puissance_turbine_5 = df_dyn_result.at["Computed","Puissance T5"]
 
 
 
-        debit_total = df_dyn_result.at["Computed","Débit disponible"]
-        debit_turbine_1 = df_dyn_result.at["Computed","Débit T1"]
-        debit_turbine_2 = df_dyn_result.at["Computed","Débit T2"]
-        debit_turbine_3 = df_dyn_result.at["Computed","Débit T3"]
-        debit_turbine_4 = df_dyn_result.at["Computed","Débit T4"]        
-        debit_turbine_5 = df_dyn_result.at["Computed","Débit T5"]
-
+    #     debit_total = df_dyn_result.at["Computed","Débit disponible"]
+    #     debit_turbine_1 = df_dyn_result.at["Computed","Débit T1"]
+    #     debit_turbine_2 = df_dyn_result.at["Computed","Débit T2"]
+    #     debit_turbine_3 = df_dyn_result.at["Computed","Débit T3"]
+    #     debit_turbine_4 = df_dyn_result.at["Computed","Débit T4"]        
+    #     debit_turbine_5 = df_dyn_result.at["Computed","Débit T5"]
+    
         
+    # ===============
+    #      Manual
+    # ===============
+    debit_total = 580.2
+    niveau_amont = 137.2
+    active_turbines = [True, True, True, True, False]
 
-
-        print(puissance_total)
-
-    # 
-
-    # multi_sim.runSimulations(1000)
+    multi_sim.calcul_exemple(debit_total=debit_total,niveau_amont=niveau_amont,active_turbines=active_turbines)
+    
