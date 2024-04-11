@@ -76,7 +76,7 @@ def getChuteNette(debit_turbine: Union[int,float]) -> Union[int,float]:
   return chute_nette
 
 
-def getStates(turbines: list) -> Dict[int,List[int]]:
+def getStates(turbines: list, max_debit) -> Dict[int,List[int]]:
   """
   return A dictionnary containing a list of every state possible for each
   available turbine
@@ -116,7 +116,7 @@ def getStates(turbines: list) -> Dict[int,List[int]]:
   return result
   
 
-def getPossibleValues():
+def getPossibleValues(turbines_working, max_debit):
   """
   return All the values that a step can take
   """
@@ -183,8 +183,7 @@ def powerFunction(debit_turbine: Union[int,float],
 
 def fillLastStage(stage: pd.DataFrame,
                   fonctionPuissance: list,
-                  turbineID: int) -> pd.DataFrame: 
-  
+                  turbineID: int, max_debit) -> pd.DataFrame: 
   xn, fn = addOptimalResultCols(stage, turbineID)
 
   for debit_restant in stage.index:
@@ -205,7 +204,8 @@ def fillPreviousStages(stage: pd.DataFrame,
                        turbineID: int,
                        previousTurbineID: int,
                        turbineIndex: int,
-                       nb_turbines: int) -> pd.DataFrame: 
+                       nb_turbines: int,
+                       max_debit) -> pd.DataFrame: 
   if MAX_DEBIT * (nb_turbines - turbineIndex) < DEBIT_TOTAL:
     debit_restant_max_for_turbine_after = MAX_DEBIT * (nb_turbines - turbineIndex) 
   else:
@@ -239,7 +239,7 @@ def fillPreviousStages(stage: pd.DataFrame,
     
   return stage
 
-def backwardPass(turbines: list, emptyStages):
+def backwardPass(turbines: list, emptyStages, max_debit):
   nb_turbines = len(turbines)
   filledStages = {}
   for i, turbineID in enumerate(turbines[::-1]):
@@ -247,7 +247,7 @@ def backwardPass(turbines: list, emptyStages):
     if turbineID == turbines[-1]:
       filledStages[turbineID] = fillLastStage(copy.copy(emptyStages[turbineID]),
                                   ARRAY_COEFFICIENTS_TURBINES[turbineID - 1],
-                                  turbineID)
+                                  turbineID, max_debit)
     else:
       # print("normal")
       filledStages[turbineID] = fillPreviousStages(copy.copy(emptyStages[turbineID]),
@@ -256,7 +256,8 @@ def backwardPass(turbines: list, emptyStages):
                                   turbineID,
                                   prevStage,
                                   nb_turbines - i,
-                                  nb_turbines)
+                                  nb_turbines,
+                                  max_debit)
     prevStage = turbineID
   return filledStages
 
@@ -276,7 +277,6 @@ def loopForwardPass(turbines, filledStages):
     dfs_choose = {}
     prevStage = turbines[0]
     dfs_choose[prevStage] = copy.copy(filledStages[prevStage])
-
     for i in turbines[1:]:
       dfs_choose[i] = forward_pass(stage = copy.copy(dfs_choose[prevStage]),
                                  df_tableau_turbine_after = copy.copy(filledStages[i]),
@@ -284,17 +284,17 @@ def loopForwardPass(turbines, filledStages):
       prevStage = i
     return dfs_choose
 
-def dynamicProgrammingAlgorithm(turbines_working):
+def dynamicProgrammingAlgorithm(turbines_working, max_debit, debit_total):
   
   turbines = [index for index, value in enumerate(turbines_working, start=1) if value]
 
-  listeEtats = getStates(turbines)
+  listeEtats = getStates(turbines, max_debit)
   # print(listeEtats)
-  debits_possible = getPossibleValues()
+  debits_possible = getPossibleValues(turbines_working, max_debit)
   
   emptyStages = createStages(turbines, listeEtats, debits_possible)
 
-  filledStages = backwardPass(turbines, emptyStages)
+  filledStages = backwardPass(turbines, emptyStages, max_debit)
   # print(filledStages)
   dfs_choose = loopForwardPass(turbines, filledStages)
   return dfs_choose

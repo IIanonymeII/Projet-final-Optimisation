@@ -39,12 +39,14 @@ class TestBlackBox:
                  debit_total: float, 
                  niveau_amont: float, 
                  active_turbines: List[bool], 
+                 max_debit: List[float],
                  df_file_row: pd.Series,
                  nb_iterations: int) -> None:
         self.debit_total = debit_total
         self.niveau_amont = niveau_amont
         self.active_turbines = active_turbines
         self.nb_iterations = nb_iterations
+        self.max_debit = max_debit
         self.prepareParamFile()
         self.initialize_result_df(df_file_row)
         self.read_nomad_path_from_env()
@@ -98,7 +100,7 @@ class TestBlackBox:
         puissances = [float(puissances_str[0])]
         curr_it = 1
         for i in range(2,self.nb_iterations+1):
-            if curr_it >= len(iteration_numbers):
+            if curr_it >= len(puissances_str):
                 puissances.append(puissances[-1])
             elif iteration_numbers[curr_it] == i:
                 puissances.append(float(puissances_str[curr_it]))
@@ -154,11 +156,16 @@ class TestBlackBox:
         data[2] = f"BB_EXE         \"${abs_path_exe} ${self.debit_total} ${self.niveau_amont}\"\n"
         data[23] = f"MAX_BB_EVAL    {self.nb_iterations}\n"
         str_max_debit = "UPPER_BOUND\t( "
+        i = 0
         for turbine in self.active_turbines:
             if turbine:
-                str_max_debit += "160 "
+                if self.max_debit[i] == None:
+                    str_max_debit += "160 "
+                else:
+                    str_max_debit += str(int(self.max_debit[i])) + " "
             else:
                 str_max_debit += "0 "
+            i += 1
         str_max_debit += ")\n"
         data[21] = str_max_debit
         with open(file_name, 'w', encoding='utf-8') as file:

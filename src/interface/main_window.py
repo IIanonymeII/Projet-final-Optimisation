@@ -1,8 +1,7 @@
-
 import tkinter as tk
 from tkinter import ttk
 import random
-
+import os
 from src.interface.manual_result import TurbineApp
 from src.interface.switch import TwoButtonSwitch
 from src.algo.both_prog import Simulations
@@ -10,7 +9,7 @@ from src.interface.puissance_total_window import RealTimePlotApp
 from src.interface.puissance_all_turbine_window import RealTimePlotAppMulti
 
 from src.interface.global_var import FILENAME, STARTING_ROW
-
+from tkinter import filedialog
 
 
 class MainApp:
@@ -24,7 +23,7 @@ class MainApp:
        
 
         self.root = root
-        self.root.title("Real Time Plot")
+        self.root.title("Outil d'optimisation de turbine")
 
         # self.iterations_label_text = tk.StringVar()
         # self.iterations_label_text.set("Nombre d'itérations max :")
@@ -46,25 +45,25 @@ class MainApp:
 
 
         #  Create a canvas
-        self.canvas = tk.Canvas(root, width=500, height=450)
+        self.canvas = tk.Canvas(root, width=500, height=550)
         self.canvas.pack()
 
         # Draw the rectangles
-        self.red_frame = tk.Frame(root, bg="red")
+        self.red_frame = tk.Frame(root)
         self.red_frame.place(x=10, y=10, width=480, height=50)  # Red rectangle at the top
 
         # Create the TwoButtonSwitch widget inside the red frame
         self.switch_widget = TwoButtonSwitch(self.red_frame, switch_callback=self.switch_callback)
         self.switch_widget.pack(padx=10, pady=10)
 
-        self.blue_frame = tk.Frame(root, bg="blue")
-        self.blue_frame.place(x=10, y=60, width=480, height=290)  # Blue rectangle in the middle (largest)
+        self.blue_frame = tk.Frame(root)
+        self.blue_frame.place(x=10, y=60, width=480, height=390)  # Blue rectangle in the middle (largest)
 
-        self.green_frame = tk.Frame(root, bg="green")
-        self.green_frame.place(x=10, y=350, width=480, height=50)  # Green rectangle at the bottom
+        self.green_frame = tk.Frame(root)
+        self.green_frame.place(x=10, y=450, width=480, height=50)  # Green rectangle at the bottom
 
-        self.yellow_frame = tk.Frame(root, bg="yellow")
-        self.yellow_frame.place(x=10, y=400, width=480, height=40)  # Yellow rectangle at the bottom
+        self.yellow_frame = tk.Frame(root)
+        self.yellow_frame.place(x=10, y=500, width=480, height=40)  # Yellow rectangle at the bottom
 
         # Create the "RUN" button inside the green frame
         self.run_button = tk.Button(self.green_frame, text="RUN", bg="green", fg="white", command=self.run_simulation)
@@ -112,8 +111,10 @@ class MainApp:
         # Remove existing widgets
         for widget in self.blue_frame.winfo_children():
             widget.destroy()
-
-        self.mode_label = ttk.Label(self.blue_frame, text="MANUAL", background="blue", foreground="white")
+        
+        self.mode_label = ttk.Label(self.blue_frame, 
+                                    text="Mode saisie manuelle")
+        self.mode_label.configure(font = ("Century Gothic", 14, "bold"))
         self.mode_label.pack(pady=5)
 
         # Create entry fields for total flow and upstream elevation
@@ -132,54 +133,145 @@ class MainApp:
         self.upstream_elevation_entry = ttk.Entry(upstream_elevation_frame)
         self.upstream_elevation_entry.pack(side=tk.LEFT, padx=5)
 
-        # Create 5 check boxes for turbines
         self.turbine_checkboxes = []
-        for i in range(5):
+        self.debit_max_inputs = []
+        
+        style = ttk.Style()
+        style.configure("RoundedFrame.TFrame", borderwidth=5, relief="groove", bordercolor="black", background="#ededed")
+
+        turbineGroup1 = tk.Frame(self.blue_frame)
+        turbineGroup1.pack(padx=10, pady=10, side="top", fill="x")
+        for i in range(3):
+            container = ttk.Frame(turbineGroup1, style="RoundedFrame.TFrame")
+            container.pack(ipadx=5, padx=10, pady=10, side="left", fill="x")  # Pack the container to the left
+
+            label_turbine = tk.Label(container, text=f"Turbine {i+1}")
+            label_turbine.pack(anchor="center", pady=5)
+
             checkbox_var = tk.BooleanVar(value=True)
-            checkbox = ttk.Checkbutton(self.blue_frame, text=f"Turbine {i+1}", variable=checkbox_var)
-            checkbox.pack(padx=5, pady=5)
             self.turbine_checkboxes.append(checkbox_var)
+            checkbox = ttk.Checkbutton(container, text="Activé", variable=checkbox_var)
+            checkbox.pack(anchor="center", pady=5)
+
+            # Label and entry on the same line
+            entry_label = tk.Label(container, text="Débit max")
+            entry_label.pack(side="left", pady=5, padx=5)
+
+            entry = ttk.Entry(container, width=7)
+            entry.insert(tk.END, "160")
+            self.debit_max_inputs.append(entry)
+            entry.pack(side="left", pady=5)
+            #checkbox.bind("<Button-1>", lambda event: self.disable_entry())
+
+        # Create the second row with 2 blocks
+        turbineGroup2 = tk.Frame(self.blue_frame)
+        turbineGroup2.pack(padx=10, pady=10)
+        for i in range(3, 5):
+            container = ttk.Frame(turbineGroup2, style="RoundedFrame.TFrame")
+            container.pack(ipadx=5, padx=10, pady=10, side="left")
+
+            label_turbine = tk.Label(container, text=f"Turbine {i+1}")
+            label_turbine.pack(anchor="center", pady=5)
+
+            checkbox_var = tk.BooleanVar(value=True)
+            self.turbine_checkboxes.append(checkbox_var)
+            checkbox = ttk.Checkbutton(container, text="Activé", variable=checkbox_var)
+            checkbox.pack(anchor="center", pady=5)
+
+            # Label and entry on the same line
+            entry_label = tk.Label(container, text="Débit max")
+            entry_label.pack(side="left", padx=5, pady=5)
+
+            entry = ttk.Entry(container, width=7)
+            entry.insert(tk.END, "160")
+            self.debit_max_inputs.append(entry)
+            entry.pack(side="left", pady=5)
+            #checkbox.bind("<Button-1>", lambda event: self.disable_entry())
+
+    def disable_entry(self):
+        time.sleep(1)
+        for i in range(5):
+            if self.turbine_checkboxes[i].get():
+                self.debit_max_inputs[i].config(state="normal")
+            else:
+                self.debit_max_inputs[i].config(state="disabled")
+
+    def browseFiles(self):
+        filename = filedialog.askopenfilename(initialdir = ".",
+                                            title = "Select a File",
+                                            filetypes = (("excel files",
+                                                            "*.xlsx*"),
+                                                        ("all files",
+                                                            "*.*")))
+        
+        # Change label contents
+        self.excel_file_name_entry.configure(text=os.path.relpath(filename))
+
+    def browseDirs(self):
+        folder_selected = filedialog.askdirectory(initialdir=".")
+        self.image_dir_path.configure(text=os.path.relpath(folder_selected))
 
     def create_excel_widgets(self):
         # Remove existing widgets
         for widget in self.blue_frame.winfo_children():
             widget.destroy()
 
-        self.mode_label = ttk.Label(self.blue_frame, text="EXCEL", background="blue", foreground="white")
+        self.mode_label = ttk.Label(self.blue_frame, text="Mode données excel")
+        self.mode_label.configure(font = ("Century Gothic", 14, "bold"))
         self.mode_label.pack(pady=5)
 
         # Create entry fields and labels for "First Num Line", "Num of Iterations", and "Excel File Name"
         entry_frame_first_num = ttk.Frame(self.blue_frame)
         entry_frame_first_num.pack(padx=5, pady=5)
-        ttk.Label(entry_frame_first_num, text="First Num Line:").pack(side=tk.LEFT)
+        ttk.Label(entry_frame_first_num, text="Numéro de la première ligne:").pack(side=tk.LEFT)
         self.first_num_line_entry = ttk.Entry(entry_frame_first_num)
         self.first_num_line_entry.pack(side=tk.LEFT, padx=5)
 
         entry_frame_iterations = ttk.Frame(self.blue_frame)
         entry_frame_iterations.pack(padx=5, pady=5)
-        ttk.Label(entry_frame_iterations, text="Num of Iterations:").pack(side=tk.LEFT)
+        ttk.Label(entry_frame_iterations, text="Nombre d'itérations:").pack(side=tk.LEFT)
         self.num_iterations_entry = ttk.Entry(entry_frame_iterations)
         self.num_iterations_entry.pack(side=tk.LEFT, padx=5)
 
         entry_frame_excel_name = ttk.Frame(self.blue_frame)
         entry_frame_excel_name.pack(padx=5, pady=5)
-        ttk.Label(entry_frame_excel_name, text="Excel File Name (default):").pack(side=tk.LEFT)
-        self.excel_file_name_entry = ttk.Entry(entry_frame_excel_name)
-        self.excel_file_name_entry.insert(tk.END, "data/DataProjet2024.xlsx")  # Default value
-        self.excel_file_name_entry.pack(side=tk.LEFT, padx=5)
+        ttk.Label(entry_frame_excel_name, 
+                  text="Fichier de données:").pack(side=tk.LEFT)
+        self.excel_file_name_entry = tk.Label(entry_frame_excel_name, 
+                            text = "Aucun fichier choisi", 
+                            fg = "blue")
+        self.excel_file_name_entry.pack(side=tk.LEFT)
+        
+        filenamecontainer = ttk.Frame(self.blue_frame)
+        filenamecontainer.pack(padx=5)
+        button_explore = tk.Button(filenamecontainer, 
+                        text = "Parcourir...",
+                        command = self.browseFiles).pack(side=tk.LEFT)
+        
 
         entry_frame_image_output = ttk.Frame(self.blue_frame)
         entry_frame_image_output.pack(padx=5, pady=5)
-        ttk.Label(entry_frame_image_output, text="Image Output Folder:").pack(side=tk.LEFT)
-        self.image_output_folder_entry = ttk.Entry(entry_frame_image_output)
-        self.image_output_folder_entry.insert(tk.END, "data/capture/")  # Default value
-        self.image_output_folder_entry.pack(side=tk.LEFT, padx=5)
+        ttk.Label(entry_frame_image_output, 
+                  text="Dossier de sauvegarde des images:").pack(side=tk.LEFT)
+        self.image_dir_path = tk.Label(entry_frame_image_output, 
+                            text = "Aucun dossier choisi", 
+                            fg = "blue")
+        self.image_dir_path.pack(side=tk.LEFT)
+        #self.image_output_folder_entry = ttk.Entry(entry_frame_image_output)
+        
+        #self.image_output_folder_entry.pack(side=tk.LEFT, padx=5)
+        foldernamecontainer = ttk.Frame(self.blue_frame)
+        foldernamecontainer.pack(padx=5)
+        button_explore = tk.Button(foldernamecontainer, 
+                        text = "Parcourir...",
+                        command = self.browseDirs).pack(side=tk.LEFT)
 
     def run_simulation_excel(self) -> None:
         self.clear_and_reset()
         try:
             self.first_num_line = int(self.first_num_line_entry.get())
             self.num_iterations = int(self.num_iterations_entry.get())
+            self.multi_sim.df_filename = self.excel_file_name_entry.cget("text")
         except ValueError:
             tk.messagebox.showerror("Erreur", "Veuillez entrer un nombre entier valide.")
             return
@@ -209,8 +301,6 @@ class MainApp:
         self.windows_fenetre_puissance_turbine.title("Real Time Plot TURBINE")
         self.plot_excel_windows_turbine = RealTimePlotAppMulti(self.windows_fenetre_puissance_turbine, iterations_max=self.iterations_max)
 
-        
-
         self.animate()
 
     def run_simulation_manual(self) -> None:
@@ -218,15 +308,25 @@ class MainApp:
             self.total_flow = float(self.total_flow_entry.get())
             self.upstream_elevation = float(self.upstream_elevation_entry.get())
             self.turbine_states = [var.get() for var in self.turbine_checkboxes]
+            self.turbines_debit_max = []
+            i = 0
+            for var in self.debit_max_inputs:
+                if var.get() == "":
+                    self.turbines_debit_max.append(None)
+                else:
+                    if self.turbine_states[i]:
+                        self.turbines_debit_max.append(float(var.get()))
+                    else:
+                        self.turbines_debit_max.append(float(0))
+                i += 1
         except ValueError:
             tk.messagebox.showerror("Erreur", "Veuillez entrer un nombre entier valide.")
             return
         
         if self.manual_windows:
             self.manual_windows.destroy()
-        
 
-        df_dyn_result = self.multi_sim.calcul_exemple(debit_total=self.total_flow,niveau_amont=self.upstream_elevation,active_turbines=self.turbine_states)
+        df_dyn_result = self.multi_sim.calcul_exemple(debit_total=self.total_flow,niveau_amont=self.upstream_elevation,active_turbines=self.turbine_states, max_debit=self.turbines_debit_max)
 
         dyn_puissance_total = df_dyn_result.at["Computed ProgDyn","Puissance totale"]
         dyn_puissance_turbine_1 = df_dyn_result.at["Computed ProgDyn","Puissance T1"]
@@ -288,15 +388,15 @@ class MainApp:
             try:
                 first_num_line = int(self.first_num_line_entry.get())
                 num_iterations = int(self.num_iterations_entry.get())
-                excel_file_name = self.excel_file_name_entry.get()
-                image_output_folder = self.image_output_folder_entry.get()
+                excel_file_name = self.excel_file_name_entry.cget("text")
+                image_output_folder = self.image_dir_path.cget("text")
                 print("First Num Line:", first_num_line)
                 print("Num of Iterations:", num_iterations)
                 print("Excel File Name:", excel_file_name)
                 print("Image Output Folder:", image_output_folder)
                 # You can add the code to handle Excel mode here if needed
             except ValueError:
-                tk.messagebox.showerror("Error", "Invalid input for Excel mode. Please enter valid numeric values.")
+                tk.messagebox.showerror("Error", "Données non valides pour le mode excel. Veuillez saisir des valeurs numériques valides.")
                 return
             self.run_simulation_excel()
         else:  # If the switch is in "Manual" mode
@@ -305,11 +405,24 @@ class MainApp:
                 total_flow = float(self.total_flow_entry.get())
                 upstream_elevation = float(self.upstream_elevation_entry.get())
                 turbine_states = [var.get() for var in self.turbine_checkboxes]
-                print("Total Flow:", total_flow)
-                print("Upstream Elevation:", upstream_elevation)
-                print("Turbine States:", turbine_states)
+                turbines_debit_max = [var.get() for var in self.debit_max_inputs]
+                turbines_debit_max = []
+                i = 0
+                for var in self.debit_max_inputs:
+                    if var.get() == "":
+                        turbines_debit_max.append(None)
+                    else:
+                        if turbine_states[i]:
+                            turbines_debit_max.append(float(var.get()))
+                        else:
+                            turbines_debit_max.append(float(0))
+                    print("Total Flow:", total_flow)
+                    print("Upstream Elevation:", upstream_elevation)
+                    print("Turbine States:", turbine_states)
+                    print("Turbine Max:", turbines_debit_max)
+
             except ValueError:
-                tk.messagebox.showerror("Error", "Invalid input. Please enter valid numeric values.")
+                tk.messagebox.showerror("Error", "Données non valides pour le mode excel. Veuillez saisir des valeurs numériques valides.")
                 return
             self.run_simulation_manual()
             
@@ -373,14 +486,12 @@ class MainApp:
 
 
                 self.plot_excel_windows_total.add_value(x=self.current_iteration, y_dyn=dyn_puissance_total, y_original=original_puissance_total, y_bb=nomad_puissance_total)
-                self.plot_excel_windows_turbine.add_value(x=self.current_iteration,y_dyn=[dyn_puissance_turbine_1,
-                                                                                          dyn_puissance_turbine_2,
-                                                                                          dyn_puissance_turbine_3,
-                                                                                          dyn_puissance_turbine_4,
-                                                                                          dyn_puissance_turbine_5],
-                                                                                    y_bb=[nomad_puissance_turbine_1,
-                                                                                          nomad_puissance_turbine_2,
-                                                                                          nomad_puissance_turbine_3,
+                self.plot_excel_windows_turbine.add_value(x=self.current_iteration, y_dyn = [dyn_puissance_turbine_1, dyn_puissance_turbine_2, dyn_puissance_turbine_3,
+          dyn_puissance_turbine_4,
+          dyn_puissance_turbine_5],
+    y_bb=[nomad_puissance_turbine_1,
+          nomad_puissance_turbine_2,
+          nomad_puissance_turbine_3,
                                                                                           nomad_puissance_turbine_4,
                                                                                           nomad_puissance_turbine_5],
                                                                                     y_original=[original_puissance_turbine_1,
