@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import random
 import os
+from src.interface.excel_main_windows import ExcelMainWindow
 from src.interface.manual_result import TurbineApp
 from src.interface.switch import TwoButtonSwitch
 from src.algo.both_prog import Simulations
@@ -294,12 +295,13 @@ class MainApp:
 
         self.windows_fenetre_puissance_total = tk.Toplevel(self.root)
         self.windows_fenetre_puissance_total.title("Real Time Plot TOTAL")
-        self.plot_excel_windows_total = RealTimePlotApp(self.windows_fenetre_puissance_total, iterations_max=self.iterations_max)
+        self.plot_excel_windows_total = ExcelMainWindow(self.windows_fenetre_puissance_total ,max_iterations=self.iterations_max)
+        # RealTimePlotApp(self.windows_fenetre_puissance_total, iterations_max=self.iterations_max)
 
 
-        self.windows_fenetre_puissance_turbine = tk.Toplevel(self.root)
-        self.windows_fenetre_puissance_turbine.title("Real Time Plot TURBINE")
-        self.plot_excel_windows_turbine = RealTimePlotAppMulti(self.windows_fenetre_puissance_turbine, iterations_max=self.iterations_max)
+        # self.windows_fenetre_puissance_turbine = tk.Toplevel(self.root)
+        # self.windows_fenetre_puissance_turbine.title("Real Time Plot TURBINE")
+        # self.plot_excel_windows_turbine = RealTimePlotAppMulti(self.windows_fenetre_puissance_turbine, iterations_max=self.iterations_max)
 
         self.animate()
 
@@ -485,27 +487,38 @@ class MainApp:
                 nomad_debit_turbine_5 = df_dyn_result.at["Computed BB","Débit T5"]
 
 
-                self.plot_excel_windows_total.add_value(x=self.current_iteration, y_dyn=dyn_puissance_total, y_original=original_puissance_total, y_bb=nomad_puissance_total)
-                self.plot_excel_windows_turbine.add_value(x=self.current_iteration, y_dyn = [dyn_puissance_turbine_1, dyn_puissance_turbine_2, dyn_puissance_turbine_3,
-          dyn_puissance_turbine_4,
-          dyn_puissance_turbine_5],
-    y_bb=[nomad_puissance_turbine_1,
-          nomad_puissance_turbine_2,
-          nomad_puissance_turbine_3,
-                                                                                          nomad_puissance_turbine_4,
-                                                                                          nomad_puissance_turbine_5],
-                                                                                    y_original=[original_puissance_turbine_1,
-                                                                                                original_puissance_turbine_2,
-                                                                                                original_puissance_turbine_3,
-                                                                                                original_puissance_turbine_4,
-                                                                                                original_puissance_turbine_5])
+                self.plot_excel_windows_total.add_value(x=self.current_iteration,
+                                                        y_puissance_total_dyn= dyn_puissance_total,
+                                                        y_list_debit_turbine_dyn= [dyn_debit_turbine_1, dyn_debit_turbine_2, dyn_debit_turbine_3,dyn_debit_turbine_4,dyn_debit_turbine_5],
+                                                        y_list_puissance_turbine_dyn=[dyn_puissance_turbine_1, dyn_puissance_turbine_2, dyn_puissance_turbine_3,dyn_puissance_turbine_4,dyn_puissance_turbine_5],
+                                                        
+                                                        y_puissance_total_original= original_puissance_total,
+                                                        y_list_debit_turbine_original= [original_debit_turbine_1, original_debit_turbine_2, original_debit_turbine_3, original_debit_turbine_4, original_debit_turbine_5],
+                                                        y_list_puissance_turbine_original=[original_puissance_turbine_1, original_puissance_turbine_2, original_puissance_turbine_3, original_puissance_turbine_4, original_puissance_turbine_5],
+                                                        
+                                                        y_puissance_total_nomad= nomad_puissance_total,
+                                                        y_list_debit_turbine_nomad= [nomad_debit_turbine_1, nomad_debit_turbine_2, nomad_debit_turbine_3, nomad_debit_turbine_4, nomad_debit_turbine_5],
+                                                        y_list_puissance_turbine_nomad=[nomad_puissance_turbine_1, nomad_puissance_turbine_2, nomad_puissance_turbine_3, nomad_puissance_turbine_4, nomad_puissance_turbine_5])
+    #             self.plot_excel_windows_turbine.add_value(x=self.current_iteration, y_dyn = [dyn_puissance_turbine_1, dyn_puissance_turbine_2, dyn_puissance_turbine_3,
+    #       dyn_puissance_turbine_4,
+    #       dyn_puissance_turbine_5],
+    # y_bb=[nomad_puissance_turbine_1,
+    #       nomad_puissance_turbine_2,
+    #       nomad_puissance_turbine_3,
+    #                                                                                       nomad_puissance_turbine_4,
+    #                                                                                       nomad_puissance_turbine_5],
+    #                                                                                 y_original=[original_puissance_turbine_1,
+    #                                                                                             original_puissance_turbine_2,
+    #                                                                                             original_puissance_turbine_3,
+    #                                                                                             original_puissance_turbine_4,
+    #                                                                                             original_puissance_turbine_5])
                 
                 self.status_label.config(text=f"Statut de la simulation : En cours ({self.current_iteration}/{self.iterations_max})")
                 self.root.after(100, self.animate)
-            else:
-                self.status_label.config(text="Statut de la simulation : Fini")
-                self.plot_excel_windows_total.final_plot()
-                self.plot_excel_windows_turbine.final_plot()
+            # else:
+            #     self.status_label.config(text="Statut de la simulation : Fini")
+            #     self.plot_excel_windows_total.final_plot()
+            #     self.plot_excel_windows_turbine.final_plot()
 
     def clear_and_reset(self) -> None:
         """Clear and reset the simulation parameters."""
