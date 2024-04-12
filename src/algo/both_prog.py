@@ -94,7 +94,7 @@ class Simulations:
         return debit_total, niveau_amont, active_turbines
     
     
-    def run_prog_dyn(self, debit_total, niveau_amont, active_turbines_bool, max_debit) -> pd.DataFrame:
+    def run_prog_dyn(self, debit_total, niveau_amont, active_turbines_bool, max_debit_turbine) -> pd.DataFrame:
         """
         Exécute le programme dynamique et retourne les résultats sous forme de DataFrame.
 
@@ -114,7 +114,15 @@ class Simulations:
         df_result = progDyn.initialize_result_df(debit_total, debit_total_computed, self.df.iloc[0])
         actives_turbines = [index for index, value in enumerate(active_turbines_bool, start=1) if value]
         start = time()
-        result = progDyn.dynamicProgrammingAlgorithm(active_turbines_bool, max_debit, debit_total_computed)
+        result = None
+        
+        if np.sum(max_debit_turbine) < progDyn.DEBIT_TOTAL:
+            print("max pour tout")
+            
+    
+        else:
+            result = progDyn.dynamicProgrammingAlgorithm(active_turbines_bool, 
+                                                     max_debit_turbine=max_debit_turbine)
         ttl_time = time() - start
         self.results["ProgDyn"]["time_data"].append(ttl_time)
         progDyn.extractResults(df_result, actives_turbines, result)
@@ -163,6 +171,7 @@ class Simulations:
         if "ProgDyn" in self.simulationTypes:
 
             df_resultDyn = self.run_prog_dyn(debit_total, niveau_amont, active_turbines, max_debit)
+            print(df_resultDyn)
             row = df_resultDyn.loc[['Computed']].rename(index={'Computed': 'Computed ProgDyn'})
             df_result = pd.concat([df_result, row])
 

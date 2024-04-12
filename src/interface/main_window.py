@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 import random
 import os
+
+import numpy as np
 from src.interface.excel_main_windows import ExcelMainWindow
 from src.interface.manual_result import TurbineApp
 from src.interface.switch import TwoButtonSwitch
@@ -310,25 +312,23 @@ class MainApp:
             self.total_flow = float(self.total_flow_entry.get())
             self.upstream_elevation = float(self.upstream_elevation_entry.get())
             self.turbine_states = [var.get() for var in self.turbine_checkboxes]
-            self.turbines_debit_max = []
-            i = 0
-            for var in self.debit_max_inputs:
-                if var.get() == "":
-                    self.turbines_debit_max.append(None)
-                else:
-                    if self.turbine_states[i]:
-                        self.turbines_debit_max.append(float(var.get()))
-                    else:
-                        self.turbines_debit_max.append(float(0))
-                i += 1
+            self.turbines_debit_max = [float(var.get()) for var in self.debit_max_inputs]
         except ValueError:
             tk.messagebox.showerror("Erreur", "Veuillez entrer un nombre entier valide.")
+            return
+        print(self.turbines_debit_max )
+
+        if np.sum(self.turbines_debit_max) < self.total_flow:
+            tk.messagebox.showerror("Erreur", "somme des turbines inférieur au debit totat. Juste mettre les debit max des turbines ")
             return
         
         if self.manual_windows:
             self.manual_windows.destroy()
 
-        df_dyn_result = self.multi_sim.calcul_exemple(debit_total=self.total_flow,niveau_amont=self.upstream_elevation,active_turbines=self.turbine_states, max_debit=self.turbines_debit_max)
+        df_dyn_result = self.multi_sim.calcul_exemple(debit_total=self.total_flow,
+                                                      niveau_amont=self.upstream_elevation,
+                                                      active_turbines=self.turbine_states, 
+                                                      max_debit=self.turbines_debit_max)
 
         dyn_puissance_total = df_dyn_result.at["Computed ProgDyn","Puissance totale"]
         dyn_puissance_turbine_1 = df_dyn_result.at["Computed ProgDyn","Puissance T1"]

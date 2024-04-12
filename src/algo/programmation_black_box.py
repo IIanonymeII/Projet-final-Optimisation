@@ -60,8 +60,8 @@ class TestBlackBox:
     def getChuteNette(self, 
                       debit_turbine: Union[int,float]) -> Union[int,float]:
         # Vérifier si le débit est dans la plage admissible
-        if debit_turbine < MIN_DEBIT or debit_turbine > MAX_DEBIT:
-            raise ValueError(f"Le débit doit être compris entre {MIN_DEBIT} et {MAX_DEBIT} m³/s. now is more {debit_turbine}")
+        # if debit_turbine < MIN_DEBIT or debit_turbine > MAX_DEBIT:
+        #     raise ValueError(f"Le débit doit être compris entre {MIN_DEBIT} et {MAX_DEBIT} m³/s. now is more {debit_turbine}")
         # Déterminer l'élévation avale en fonction du débit total
         elevation_avale = COEFFICIENTS_ELEV_AVAL[0] * self.debit_total**2 + \
                             COEFFICIENTS_ELEV_AVAL[1] * self.debit_total + \
