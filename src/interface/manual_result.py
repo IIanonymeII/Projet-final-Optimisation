@@ -68,6 +68,10 @@ class TurbineApp(tk.Tk):
         ax1.legend()
         ax1.grid(True)
 
+        # Set custom x ticks and labels
+        ax1.set_xticks(range(1, 6))
+        ax1.set_xticklabels(range(1, 6))
+
         # Plot for flow
         ax2 = fig.add_subplot(212)
         ax2.plot(range(1, 6), [debit for _, _, debit, _ in puissance_debit], label='Dynamic Flow')
@@ -77,6 +81,10 @@ class TurbineApp(tk.Tk):
         ax2.set_title('Turbine Flow')
         ax2.legend()
         ax2.grid(True)
+
+        # Set custom x ticks and labels
+        ax2.set_xticks(range(1, 6))
+        ax2.set_xticklabels(range(1, 6))
 
         # Adjust the height ratio between the two subplots
         plt.subplots_adjust(hspace=0.5)
