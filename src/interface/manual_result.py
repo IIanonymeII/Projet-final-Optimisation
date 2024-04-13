@@ -9,9 +9,10 @@ class TurbineApp(tk.Tk):
         self.title("Analyseur de Performance des Turbines")
         self.geometry("1000x700")
 
-        self.create_widgets(puissance_total_dyn, puissance_total_nomad, debit_total_dyn, debit_total_nomad, puissance_debit_chutte)
+        self.create_widgets(puissance_total_dyn, puissance_total_nomad, 
+                            puissance_debit_chutte)
 
-    def create_widgets(self, puissance_total_dyn, puissance_total_nomad, debit_total_dyn, debit_total_nomad, puissance_debit_chutte):
+    def create_widgets(self, puissance_total_dyn, puissance_total_nomad, puissance_debit_chutte):
         # Labels for turbine parameters
         tk.Label(self, text="Turbine   ", bg="lightgray").grid(row=0, column=1)
         tk.Label(self, text="Puissance Dynamique (MW)", bg="lightblue").grid(row=0, column=2)
@@ -20,9 +21,12 @@ class TurbineApp(tk.Tk):
         tk.Label(self, text="Débit Nomade (m^3/s)", bg="lightpink").grid(row=0, column=5)        
         tk.Label(self, text="Chute Nette Dynamique (m)", bg="lightgreen").grid(row=0, column=6)
         tk.Label(self, text="Chute Nette Nomade (m)", bg="lightgreen").grid(row=0, column=7)
-
+        sum_deb_nom = 0
+        sum_deb_dyn = 0
         # Create labels for each turbine
         for i, (puissance_dyn, puissance_nomad, debit_dyn, debit_nomad, chutte_nette_dyn, chutte_nette_nomad) in enumerate(puissance_debit_chutte, start=1):
+            sum_deb_dyn += debit_dyn
+            sum_deb_nom += debit_nomad
             tk.Label(self, text=f"Turbine {i}", bg="lightgray").grid(row=i, column=1)
 
             # Labels for dynamic power and flow
@@ -56,10 +60,10 @@ class TurbineApp(tk.Tk):
         self.total_power_nomad_label = tk.Label(self, text=str(puissance_total_nomad), font=("Arial", 10, "bold"))
         self.total_power_nomad_label.grid(row=i+1, column=3)
 
-        self.total_flow_dyn_label = tk.Label(self, text=str(debit_total_dyn), font=("Arial", 10, "bold"))
+        self.total_flow_dyn_label = tk.Label(self, text=str(sum_deb_dyn), font=("Arial", 10, "bold"))
         self.total_flow_dyn_label.grid(row=i+1, column=4)
 
-        self.total_flow_nomad_label = tk.Label(self, text=str(debit_total_nomad), font=("Arial", 10, "bold"))
+        self.total_flow_nomad_label = tk.Label(self, text=str(sum_deb_nom), font=("Arial", 10, "bold"))
         self.total_flow_nomad_label.grid(row=i+1, column=5)
 
         # Plot for power
