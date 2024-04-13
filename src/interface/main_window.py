@@ -364,23 +364,29 @@ class MainApp:
         nomad_debit_turbine_3 = df_dyn_result.at["Computed BB","Débit T3"]
         nomad_debit_turbine_4 = df_dyn_result.at["Computed BB","Débit T4"]        
         nomad_debit_turbine_5 = df_dyn_result.at["Computed BB","Débit T5"]
-        # print("   PUISSANCE TOTAL   ")
-        # print(f"NOMAD : {nomad_puissance_total}")
-        # print(f"DYNAM : {dyn_puissance_total}")
 
-        # print("   PUISSANCE TURBINE 1   ")
-        # print(f"NOMAD : {nomad_puissance_turbine_1}")
-        # print(f"DYNAM : {dyn_puissance_turbine_1}")
+        dyn_chutte_turbine_1 = df_dyn_result.at["Computed ProgDyn","Chute Nette T1"]
+        dyn_chutte_turbine_2 = df_dyn_result.at["Computed ProgDyn","Chute Nette T2"]
+        dyn_chutte_turbine_3 = df_dyn_result.at["Computed ProgDyn","Chute Nette T3"]
+        dyn_chutte_turbine_4 = df_dyn_result.at["Computed ProgDyn","Chute Nette T4"]        
+        dyn_chutte_turbine_5 = df_dyn_result.at["Computed ProgDyn","Chute Nette T5"]
+
+
+        nomad_chutte_turbine_1 = df_dyn_result.at["Computed BB","Chute Nette T1"]
+        nomad_chutte_turbine_2 = df_dyn_result.at["Computed BB","Chute Nette T2"]
+        nomad_chutte_turbine_3 = df_dyn_result.at["Computed BB","Chute Nette T3"]
+        nomad_chutte_turbine_4 = df_dyn_result.at["Computed BB","Chute Nette T4"]        
+        nomad_chutte_turbine_5 = df_dyn_result.at["Computed BB","Chute Nette T5"]
 
         self.manual_windows = TurbineApp(puissance_total_dyn=dyn_puissance_total,
                                          puissance_total_nomad=nomad_puissance_total,
                                          debit_total_dyn=dyn_debit_total,
                                          debit_total_nomad=nomad_debit_total,
-                                         puissance_debit=[(dyn_puissance_turbine_1,nomad_puissance_turbine_1,dyn_debit_turbine_1,nomad_debit_turbine_1),
-                                                          (dyn_puissance_turbine_2,nomad_puissance_turbine_2,dyn_debit_turbine_2,nomad_debit_turbine_2),
-                                                          (dyn_puissance_turbine_3,nomad_puissance_turbine_3,dyn_debit_turbine_3,nomad_debit_turbine_3),
-                                                          (dyn_puissance_turbine_4,nomad_puissance_turbine_4,dyn_debit_turbine_4,nomad_debit_turbine_4),
-                                                          (dyn_puissance_turbine_5,nomad_puissance_turbine_5,dyn_debit_turbine_5,nomad_debit_turbine_5)])
+                                         puissance_debit_chutte=[(dyn_puissance_turbine_1,nomad_puissance_turbine_1,dyn_debit_turbine_1,nomad_debit_turbine_1,dyn_chutte_turbine_1,nomad_chutte_turbine_1),
+                                                                 (dyn_puissance_turbine_2,nomad_puissance_turbine_2,dyn_debit_turbine_2,nomad_debit_turbine_2,dyn_chutte_turbine_2,nomad_chutte_turbine_2),
+                                                                 (dyn_puissance_turbine_3,nomad_puissance_turbine_3,dyn_debit_turbine_3,nomad_debit_turbine_3,dyn_chutte_turbine_3,nomad_chutte_turbine_3),
+                                                                 (dyn_puissance_turbine_4,nomad_puissance_turbine_4,dyn_debit_turbine_4,nomad_debit_turbine_4,dyn_chutte_turbine_4,nomad_chutte_turbine_4),
+                                                                 (dyn_puissance_turbine_5,nomad_puissance_turbine_5,dyn_debit_turbine_5,nomad_debit_turbine_5,dyn_chutte_turbine_5,nomad_chutte_turbine_5)])
 
     def run_simulation(self) -> None:
         """
