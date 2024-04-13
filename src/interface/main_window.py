@@ -153,7 +153,7 @@ class MainApp:
 
             checkbox_var = tk.BooleanVar(value=True)
             self.turbine_checkboxes.append(checkbox_var)
-            checkbox = ttk.Checkbutton(container, text="Activé", variable=checkbox_var)
+            checkbox = ttk.Checkbutton(container, text="Activé", variable=checkbox_var, command=lambda idx=i: self.print_check(idx))
             checkbox.pack(anchor="center", pady=5)
 
             # Label and entry on the same line
@@ -178,7 +178,7 @@ class MainApp:
 
             checkbox_var = tk.BooleanVar(value=True)
             self.turbine_checkboxes.append(checkbox_var)
-            checkbox = ttk.Checkbutton(container, text="Activé", variable=checkbox_var)
+            checkbox = ttk.Checkbutton(container, text="Activé", variable=checkbox_var, command=lambda idx=i: self.print_check(idx))
             checkbox.pack(anchor="center", pady=5)
 
             # Label and entry on the same line
@@ -191,13 +191,16 @@ class MainApp:
             entry.pack(side="left", pady=5)
             #checkbox.bind("<Button-1>", lambda event: self.disable_entry())
 
-    def disable_entry(self):
-        time.sleep(1)
-        for i in range(5):
-            if self.turbine_checkboxes[i].get():
-                self.debit_max_inputs[i].config(state="normal")
-            else:
-                self.debit_max_inputs[i].config(state="disabled")
+    def print_check(self, idx):
+        checkbox_var = self.turbine_checkboxes[idx]
+        if checkbox_var.get():
+            # print(f"Turbine {idx+1}: Check")
+            self.debit_max_inputs[idx].delete(0, tk.END)
+            self.debit_max_inputs[idx].insert(tk.END, "160")
+        else:
+            # print(f"Turbine {idx+1}: CheckBox is not checked.")
+            self.debit_max_inputs[idx].delete(0, tk.END)
+            self.debit_max_inputs[idx].insert(tk.END, "0")
 
     def browseFiles(self):
         filename = filedialog.askopenfilename(initialdir = ".",

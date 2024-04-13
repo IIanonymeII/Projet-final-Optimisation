@@ -285,8 +285,8 @@ def fillPreviousStages(stage: pd.DataFrame,
       # print(f"debit_restant {debit_restant} / debit_turbine {debit_turbine} => {debit_for_turbine_after}")
       
       if debit_for_turbine_after < 0 \
-      or  debit_for_turbine_after > debit_restant_max_for_turbine_after :
-      # or  debit_for_turbine_after not in previousStage.index :
+      or  debit_for_turbine_after > debit_restant_max_for_turbine_after \
+      or  debit_for_turbine_after not in previousStage.index :
         # print(f"{(debit_for_turbine_after < 0)} or {(debit_for_turbine_after > debit_restant_max_for_turbine_after)} or {(debit_for_turbine_after not in previousStage.index)}")
 
         stage.loc[debit_restant, debit_turbine] = "-"
