@@ -98,6 +98,7 @@ class MainApp:
         self.total_flow = None
         self.upstream_elevation= None
         self.turbine_states = None
+        self.image_output_folder = None
 
         self.multi_sim = Simulations(FILENAME, ["ProgDyn","BB"])
 
@@ -397,11 +398,11 @@ class MainApp:
                 first_num_line = int(self.first_num_line_entry.get())
                 num_iterations = int(self.num_iterations_entry.get())
                 excel_file_name = self.excel_file_name_entry.cget("text")
-                image_output_folder = self.image_dir_path.cget("text")
+                self.image_output_folder = self.image_dir_path.cget("text")
                 print("First Num Line:", first_num_line)
                 print("Num of Iterations:", num_iterations)
                 print("Excel File Name:", excel_file_name)
-                print("Image Output Folder:", image_output_folder)
+                print("Image Output Folder:", self.image_output_folder)
                 # You can add the code to handle Excel mode here if needed
             except ValueError:
                 tk.messagebox.showerror("Error", "Données non valides pour le mode excel. Veuillez saisir des valeurs numériques valides.")
@@ -487,6 +488,24 @@ class MainApp:
                 nomad_debit_turbine_4 = df_dyn_result.at["Computed BB","Débit T4"]        
                 nomad_debit_turbine_5 = df_dyn_result.at["Computed BB","Débit T5"]
 
+                dyn_chute_turbine_1 = df_dyn_result.at["Computed ProgDyn","Chute Nette T1"]
+                dyn_chute_turbine_2 = df_dyn_result.at["Computed ProgDyn","Chute Nette T2"]
+                dyn_chute_turbine_3 = df_dyn_result.at["Computed ProgDyn","Chute Nette T3"]
+                dyn_chute_turbine_4 = df_dyn_result.at["Computed ProgDyn","Chute Nette T4"]        
+                dyn_chute_turbine_5 = df_dyn_result.at["Computed ProgDyn","Chute Nette T5"]
+
+                original_chute_turbine_1 = df_dyn_result.at["Original","Chute Nette T1"]
+                original_chute_turbine_2 = df_dyn_result.at["Original","Chute Nette T2"]
+                original_chute_turbine_3 = df_dyn_result.at["Original","Chute Nette T3"]
+                original_chute_turbine_4 = df_dyn_result.at["Original","Chute Nette T4"]        
+                original_chute_turbine_5 = df_dyn_result.at["Original","Chute Nette T5"]
+
+                nomad_chute_turbine_1 = df_dyn_result.at["Computed BB","Chute Nette T1"]
+                nomad_chute_turbine_2 = df_dyn_result.at["Computed BB","Chute Nette T2"]
+                nomad_chute_turbine_3 = df_dyn_result.at["Computed BB","Chute Nette T3"]
+                nomad_chute_turbine_4 = df_dyn_result.at["Computed BB","Chute Nette T4"]        
+                nomad_chute_turbine_5 = df_dyn_result.at["Computed BB","Chute Nette T5"]
+
 
                 self.plot_excel_windows_total.add_value(x=self.current_iteration,
                                                         y_puissance_total_dyn= dyn_puissance_total,
@@ -499,27 +518,18 @@ class MainApp:
                                                         
                                                         y_puissance_total_nomad= nomad_puissance_total,
                                                         y_list_debit_turbine_nomad= [nomad_debit_turbine_1, nomad_debit_turbine_2, nomad_debit_turbine_3, nomad_debit_turbine_4, nomad_debit_turbine_5],
-                                                        y_list_puissance_turbine_nomad=[nomad_puissance_turbine_1, nomad_puissance_turbine_2, nomad_puissance_turbine_3, nomad_puissance_turbine_4, nomad_puissance_turbine_5])
-    #             self.plot_excel_windows_turbine.add_value(x=self.current_iteration, y_dyn = [dyn_puissance_turbine_1, dyn_puissance_turbine_2, dyn_puissance_turbine_3,
-    #       dyn_puissance_turbine_4,
-    #       dyn_puissance_turbine_5],
-    # y_bb=[nomad_puissance_turbine_1,
-    #       nomad_puissance_turbine_2,
-    #       nomad_puissance_turbine_3,
-    #                                                                                       nomad_puissance_turbine_4,
-    #                                                                                       nomad_puissance_turbine_5],
-    #                                                                                 y_original=[original_puissance_turbine_1,
-    #                                                                                             original_puissance_turbine_2,
-    #                                                                                             original_puissance_turbine_3,
-    #                                                                                             original_puissance_turbine_4,
-    #                                                                                             original_puissance_turbine_5])
-                
+                                                        y_list_puissance_turbine_nomad=[nomad_puissance_turbine_1, nomad_puissance_turbine_2, nomad_puissance_turbine_3, nomad_puissance_turbine_4, nomad_puissance_turbine_5],
+                                                        
+                                                        y_chute_turbine_original=[original_chute_turbine_1, original_chute_turbine_2, original_chute_turbine_3, original_chute_turbine_4, original_chute_turbine_5 ],
+                                                        y_chute_turbine_nomad=[nomad_chute_turbine_1, nomad_chute_turbine_2, nomad_chute_turbine_3, nomad_chute_turbine_4, nomad_chute_turbine_5],
+                                                        y_chute_turbine_dyn=[dyn_chute_turbine_1, dyn_chute_turbine_2, dyn_chute_turbine_3, dyn_chute_turbine_4, dyn_chute_turbine_5])
+    #           
                 self.status_label.config(text=f"Statut de la simulation : En cours ({self.current_iteration}/{self.iterations_max})")
                 self.root.after(100, self.animate)
-            # else:
-            #     self.status_label.config(text="Statut de la simulation : Fini")
-            #     self.plot_excel_windows_total.final_plot()
-            #     self.plot_excel_windows_turbine.final_plot()
+            else:
+                print("final")
+                self.plot_excel_windows_total.plot_final()
+                self.plot_excel_windows_total.save_figures_as_png(folder=self.image_output_folder)
 
     def clear_and_reset(self) -> None:
         """Clear and reset the simulation parameters."""

@@ -177,6 +177,23 @@ class Simulations:
                 df_resultDyn = self.run_prog_dyn(debit_total, niveau_amont, active_turbines, max_debit_turbine=[160, 160, 160, 160, 160])
                 row = df_resultDyn.loc[['Computed']].rename(index={'Computed': 'Computed ProgDyn'})
                 df_result = pd.concat([df_result, row])
+            # print(df_result)
+            df_result = progDyn.get_chute_nette_for_turbine_result(df_result=df_result,
+                                                               list_debit_turbine_dyn=[df_result.at["Computed ProgDyn","Débit T1"],
+                                                                                       df_result.at["Computed ProgDyn","Débit T2"],
+                                                                                       df_result.at["Computed ProgDyn","Débit T3"],
+                                                                                       df_result.at["Computed ProgDyn","Débit T4"],
+                                                                                       df_result.at["Computed ProgDyn","Débit T5"]],
+                                                                list_debit_turbine_nomad=[df_result.at["Computed BB","Débit T1"],
+                                                                                          df_result.at["Computed BB","Débit T2"],
+                                                                                          df_result.at["Computed BB","Débit T3"],
+                                                                                          df_result.at["Computed BB","Débit T4"],
+                                                                                          df_result.at["Computed BB","Débit T5"]],
+                                                                list_debit_turbine_original=[df_result.at["Original","Débit T1"],
+                                                                                             df_result.at["Original","Débit T2"],
+                                                                                             df_result.at["Original","Débit T3"],
+                                                                                             df_result.at["Original","Débit T4"],
+                                                                                             df_result.at["Original","Débit T5"]],                          )
 
             return df_result
                     

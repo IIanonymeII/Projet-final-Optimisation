@@ -77,11 +77,15 @@ def getChuteNette(debit_turbine: Union[int,float]) -> Union[int,float]:
 
 def get_chute_nette_for_turbine_result(df_result: pd.DataFrame,
                                        list_debit_turbine_dyn: List[float],
-                                       list_debit_turbine_nomad: List[float]) -> pd.DataFrame:
+                                       list_debit_turbine_nomad: List[float],
+                                       list_debit_turbine_original : List[float]=None) -> pd.DataFrame:
   for i in range(0,5):
     dyn_chutte = getChuteNette(debit_turbine=list_debit_turbine_dyn[i])
     nomad_chutte = getChuteNette(debit_turbine=list_debit_turbine_nomad[i])
-    df_result[f'Chute Nette T{i+1}'] = [0,dyn_chutte,nomad_chutte]
+    original_chutte = 0
+    if list_debit_turbine_original:
+      original_chutte = getChuteNette(debit_turbine=list_debit_turbine_original[i])
+    df_result[f'Chute Nette T{i+1}'] = [original_chutte,dyn_chutte,nomad_chutte]
   
 
   return df_result
