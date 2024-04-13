@@ -80,6 +80,7 @@ class ExcelMainWindow(tk.Tk):
             canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
             self.right_side_plots.append(plot)  # Append the right side plot to the list
 
+
         # Initialize data arrays
         self.max_iterations = max_iterations
         self.current_iteration = 0

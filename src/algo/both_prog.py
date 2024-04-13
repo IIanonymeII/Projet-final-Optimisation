@@ -174,7 +174,7 @@ class Simulations:
             df_result = df_result.rename(index={'Computed': 'Computed BB'})
             if "ProgDyn" in self.simulationTypes:
 
-                df_resultDyn = self.run_prog_dyn(debit_total, niveau_amont, active_turbines, max_debit=[160, 160, 160, 160, 160])
+                df_resultDyn = self.run_prog_dyn(debit_total, niveau_amont, active_turbines, max_debit_turbine=[160, 160, 160, 160, 160])
                 row = df_resultDyn.loc[['Computed']].rename(index={'Computed': 'Computed ProgDyn'})
                 df_result = pd.concat([df_result, row])
 

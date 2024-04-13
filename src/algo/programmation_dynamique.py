@@ -306,9 +306,11 @@ def fillPreviousStages(stage: pd.DataFrame,
         # print("dif")
         # print(f"[{debit_for_turbine_after}, F{previousTurbineID}]")
         puissance_add = previousStage.loc[debit_for_turbine_after, f"F{previousTurbineID}"]
-        # if puissance_add != None:
-        puissance = puissance_add + powerFunction(debit_turbine, chute_nette, 
-                                                  fonctionPuissance)       
+        puissance = 0
+        if puissance_add != None:
+          puissance = puissance_add + powerFunction(debit_turbine, chute_nette, 
+                                                  fonctionPuissance)   
+            
         stage.loc[debit_restant, debit_turbine] = puissance
 
     stage = getOptimalSolution(stage, turbineID)
