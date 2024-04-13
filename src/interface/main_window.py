@@ -321,9 +321,6 @@ class MainApp:
             return
         print(self.turbines_debit_max )
 
-        if np.sum(self.turbines_debit_max) < self.total_flow:
-            tk.messagebox.showerror("Erreur", "somme des turbines inférieur au debit totat. Juste mettre les debit max des turbines ")
-            return
         
         if self.manual_windows:
             self.manual_windows.destroy()

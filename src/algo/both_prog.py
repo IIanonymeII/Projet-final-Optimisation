@@ -93,6 +93,27 @@ class Simulations:
         active_turbines = [bool(self.df[f'P{i} (MW)'][0]) for i in range(1, 6)]
         return debit_total, niveau_amont, active_turbines
     
+    def createBypassResult(self, active_turbines_bool, max_debit_turbine):
+        resultDict = {}
+        index = 0
+        sumPuissance = 0
+        for i, is_active in enumerate(active_turbines_bool[::-1]):
+            if is_active:
+                numTurbine = len(active_turbines_bool) - i
+                debit = max_debit_turbine[numTurbine - 1]
+                coefficients = progDyn.ARRAY_COEFFICIENTS_TURBINES[numTurbine - 1]
+                chuteNette = progDyn.getChuteNette(debit)
+                puissance = progDyn.powerFunction(debit, chuteNette, 
+                                                  coefficients)
+                sumPuissance += puissance
+                df = pd.DataFrame(columns=[f"X{numTurbine}", f"F{numTurbine}"])
+                new_row = {f"X{numTurbine}": debit, f"F{numTurbine}": 0}
+                df.loc[index] = new_row
+                df[f"F{numTurbine}"] = df[f"F{numTurbine}"] + sumPuissance
+                resultDict[numTurbine] = df
+                index += 1
+        print(resultDict)
+        return resultDict
     
     def run_prog_dyn(self, debit_total, niveau_amont, active_turbines_bool, max_debit_turbine) -> pd.DataFrame:
         """
@@ -116,10 +137,11 @@ class Simulations:
         start = time()
         result = None
         
-        if np.sum(max_debit_turbine) < progDyn.DEBIT_TOTAL:
-            print("max pour tout")
-            
-    
+        if np.sum(max_debit_turbine) <= progDyn.DEBIT_TOTAL:
+            ttl_time = 0
+            result = self.createBypassResult(active_turbines_bool, max_debit_turbine)
+
+
         else:
             result = progDyn.dynamicProgrammingAlgorithm(active_turbines_bool, 
                                                      max_debit_turbine=max_debit_turbine)
