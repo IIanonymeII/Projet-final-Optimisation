@@ -2,7 +2,7 @@ from time import time
 from typing import Iterator, List, Tuple
 import numpy as np
 import pandas as pd
-
+import src.algo.programmation_black_box as progBB
 from src.algo.programmation_black_box import TestBlackBox
 import src.algo.programmation_dynamique as progDyn
 
@@ -112,7 +112,6 @@ class Simulations:
                 df[f"F{numTurbine}"] = df[f"F{numTurbine}"] + sumPuissance
                 resultDict[numTurbine] = df
                 index += 1
-        print(resultDict)
         return resultDict
     
     def run_prog_dyn(self, debit_total, niveau_amont, active_turbines_bool, max_debit_turbine) -> pd.DataFrame:
@@ -181,21 +180,48 @@ class Simulations:
 
             return df_result
                     
+    def createBypassBbox(self, active_turbines, max_debit, 
+                         debit_total, niveau_amont, bb: TestBlackBox):
+        df = pd.DataFrame(index=["Original", "Computed"])
+        df["Débit disponible"] = debit_total
+        puissance_totale = 0
+        new_row = pd.Series([0] * len(df.columns), index=df.columns)
+        for i, is_active in enumerate(active_turbines):
+            if is_active:
+                chuteNette = bb.getChuteNette(max_debit[i])
+                puissance = bb.powerFunction(max_debit[i],chuteNette,
+                                             progBB.ARRAY_COEFFICIENTS_TURBINES[i])
+                puissance_totale += puissance
+                df.at["Computed", f"Débit T{i+1}"] = max_debit[i]
+                df.at["Original", f"Débit T{i+1}"] = 0
+                df.at["Computed", f"Puissance T{i+1}"] = puissance
+                df.at["Original", f"Puissance T{i+1}"] = 0
+                
+        df["Puissance totale"] = puissance_totale
+        df.at["Original", f"Puissance totale"] = 0
+        return df
 
     def calcul_exemple(self, debit_total: float, niveau_amont: float, active_turbines, max_debit) -> pd.DataFrame:
-        
         self.df = self.default_panda_return()
-        bb = TestBlackBox(debit_total, niveau_amont, active_turbines, max_debit, self.df.iloc[0], 200)
-        time, puissances = bb.run()
+        bb = TestBlackBox(debit_total, niveau_amont, active_turbines, 
+                          max_debit, self.df.iloc[0], 200)
+        if np.sum(max_debit) <= debit_total:
+            time = 0
+            df_result = self.createBypassBbox(active_turbines, max_debit, 
+                                              debit_total, niveau_amont, bb)
+        else:
+            time, puissances = bb.run()
+            df_result = bb.df_result
         self.results["BB"]["time_data"].append(time)
-        df_result = bb.df_result
         df_result = df_result.rename(index={'Computed': 'Computed BB'})
         if "ProgDyn" in self.simulationTypes:
 
-            df_resultDyn = self.run_prog_dyn(debit_total, niveau_amont, active_turbines, max_debit)
+            df_resultDyn = self.run_prog_dyn(debit_total, niveau_amont, 
+                                             active_turbines, max_debit)
             # print(df_resultDyn)
             row = df_resultDyn.loc[['Computed']].rename(index={'Computed': 'Computed ProgDyn'})
             df_result = pd.concat([df_result, row])
+        print(df_result)
         df_result = progDyn.get_chute_nette_for_turbine_result(df_result=df_result,
                                                                list_debit_turbine_dyn=[df_result.at["Computed ProgDyn","Débit T1"],
                                                                                        df_result.at["Computed ProgDyn","Débit T2"],

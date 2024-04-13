@@ -319,7 +319,7 @@ class MainApp:
         except ValueError:
             tk.messagebox.showerror("Erreur", "Veuillez entrer un nombre entier valide.")
             return
-        print(self.turbines_debit_max )
+
 
         
         if self.manual_windows:
@@ -392,7 +392,7 @@ class MainApp:
         This method fetches the maximum number of iterations and initiates the simulation.
         """
         if self.switch_state:  # If the switch is in "Excel" mode
-            print("Excel Mode")
+
             try:
                 first_num_line = int(self.first_num_line_entry.get())
                 num_iterations = int(self.num_iterations_entry.get())
@@ -409,7 +409,6 @@ class MainApp:
             self.run_simulation_excel()
         else:  # If the switch is in "Manual" mode
             try:
-                print("Manual Mode")
                 total_flow = float(self.total_flow_entry.get())
                 upstream_elevation = float(self.upstream_elevation_entry.get())
                 turbine_states = [var.get() for var in self.turbine_checkboxes]
@@ -424,10 +423,6 @@ class MainApp:
                             turbines_debit_max.append(float(var.get()))
                         else:
                             turbines_debit_max.append(float(0))
-                    print("Total Flow:", total_flow)
-                    print("Upstream Elevation:", upstream_elevation)
-                    print("Turbine States:", turbine_states)
-                    print("Turbine Max:", turbines_debit_max)
 
             except ValueError:
                 tk.messagebox.showerror("Error", "Données non valides pour le mode excel. Veuillez saisir des valeurs numériques valides.")
