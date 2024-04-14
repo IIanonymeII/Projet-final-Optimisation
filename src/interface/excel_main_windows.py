@@ -192,10 +192,12 @@ class ExcelMainWindow(tk.Tk):
             figure.tight_layout()  # Adjust subplot layout
             figure.canvas.draw()    # Update the figure with the new layout
 
-    def save_difference(self, folder):
+    def save_puissance_differences_as_png(self, folder):
         # Calculate differences
-        difference_puissance_dyn = np.array(self.y_puissance_total_original) - np.array(self.y_puissance_total_dyn)
-        difference_puissance_nomad = np.array(self.y_puissance_total_original) - np.array(self.y_puissance_total_nomad)
+        difference_puissance_dyn = np.array(self.y_puissance_total_dyn) - np.array(self.y_puissance_total_original)  
+        difference_puissance_nomad = np.array(self.y_puissance_total_nomad) - np.array(self.y_puissance_total_original) 
+        # print(f"DYN   : dif : {len(difference_puissance_dyn)} => {self.y_puissance_total_dyn} - {self.y_puissance_total_original}")
+        # print(f"NOMAD : dif : {len(difference_puissance_nomad)} => {self.y_puissance_total_nomad} - {self.y_puissance_total_original}")
 
         # Calculate average differences
         moyenne_difference_puissance_dyn = np.mean(difference_puissance_dyn)
@@ -203,15 +205,22 @@ class ExcelMainWindow(tk.Tk):
 
         # Create subplots for differences
         fig_difference, ax_difference = plt.subplots()
-        ax_difference.plot(self.x_data, difference_puissance_dyn, label="Différence puissance dyn")
-        ax_difference.plot(self.x_data, difference_puissance_nomad, label="Différence puissance nomad")
-        ax_difference.set_title(f"Differences entre puissance total et dyn / nomad (Moyennes: {moyenne_difference_puissance_dyn:.2f}, {moyenne_difference_puissance_nomad:.2f})")
-        ax_difference.set_xlabel("Temps")
-        ax_difference.set_ylabel("Difference")
+        ax_difference.plot(self.x_data, difference_puissance_dyn, color='blue', label=f"Dyn")
+        ax_difference.axhline(y=moyenne_difference_puissance_dyn, color='blue', linestyle='--', label=f"Moyenne Dyn ({moyenne_difference_puissance_dyn:.2f} MW)")
+        
+        ax_difference.plot(self.x_data, difference_puissance_nomad, color='orange', label=f"Nomad")
+        ax_difference.axhline(y=moyenne_difference_puissance_nomad, color='orange', linestyle='--', label=f"Moyenne Nomad ({moyenne_difference_puissance_nomad:.2f} MW)")
+       
+        ax_difference.set_title("Differences entre Dyn / Nomad et puissance totale  ")
+        # ax_difference.set_subtitle(f"Dyn - Puissance totale & Nomad - Puissance totale")
+        ax_difference.set_xlabel("Itération")
+        ax_difference.set_ylabel("Difference Puissance (MW)")
+        ax_difference.autoscale()
         ax_difference.legend()
 
         # Save the figure
         fig_difference.savefig(os.path.join(folder, "EXCEL_puissance_differences.png"), bbox_inches='tight', dpi=300)
+
 
     def save_chute_figures_as_png(self, folder):
         # Create the folder if it doesn't exist
@@ -231,29 +240,72 @@ class ExcelMainWindow(tk.Tk):
 
             # Set title and labels
             ax_chute.set_title(f"Chute turbine {i+1}")
-            ax_chute.set_xlabel("Temps")
+            ax_chute.set_xlabel("Itération")
             ax_chute.set_ylabel("Chute")
             ax_chute.legend()
 
             # Save the figure
             fig_chute.savefig(os.path.join(folder, f"chute_turbine_{i+1}.png"), bbox_inches='tight', dpi=300)  # Adjust dpi as needed
 
+    def save_total_puissance_as_png(self, folder):
+        # Calculate the averages of puissance totale for Original, Dyn, and Nomad
+        moyenne_puissance_totale_original = np.mean(self.y_puissance_total_original)
+        moyenne_puissance_totale_nomad = np.mean(self.y_puissance_total_nomad)
+        moyenne_puissance_totale_dyn = np.mean(self.y_puissance_total_dyn)
+        
+        # Reload the figure and autoscale y-axis for better visualization
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.plot(self.x_data, self.y_puissance_total_original, label=f"Original (Moyenne: {moyenne_puissance_totale_original:.2f} MW)")
+        ax.plot(self.x_data, self.y_puissance_total_nomad, label=f"Nomad (Moyenne: {moyenne_puissance_totale_nomad:.2f} MW)")
+        ax.plot(self.x_data, self.y_puissance_total_dyn, label=f"Dyn (Moyenne: {moyenne_puissance_totale_dyn:.2f} MW)")
+        ax.set_title("Puissance totale")
+        ax.set_xlabel("Itération")
+        ax.set_ylabel("Puissance (MW)")
+        ax.autoscale()  # Autoscale 
+        ax.legend()
+        fig.savefig(os.path.join(folder, "EXCEL_puissance_totale.png"), bbox_inches='tight', dpi=300)  # Save autoscaled figure
+
+
+    def save_turbine_debit_as_png(self, folder):
+        # Save Débit turbine 1 à 5
+        for i, plot in enumerate(self.left_side_plots):
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.plot(self.x_data, self.y_debit_turbine_original[i], label="Original")
+            ax.plot(self.x_data, self.y_debit_turbine_nomad[i], label="Nomad")
+            ax.plot(self.x_data, self.y_debit_turbine_dyn[i], label="Dyn")
+            ax.set_title(f"Débit turbine {i + 1}")
+            ax.set_xlabel("Itération")
+            ax.set_ylabel("Débit (m^3/s)")
+            ax.autoscale()  # Autoscale y-axis based on data values
+            ax.legend()
+            fig.savefig(os.path.join(folder, f"EXCEL_debit_turbine_{i+1}.png"), bbox_inches='tight', dpi=300)  # Save autoscaled figure
+
+    def save_turbine_puissance_as_png(self, folder):
+        # Save Puissance turbine 1 à 5
+        for i, plot in enumerate(self.right_side_plots):
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.plot(self.x_data, self.y_puissance_turbine_original[i], label="Original")
+            ax.plot(self.x_data, self.y_puissance_turbine_nomad[i], label="Nomad")
+            ax.plot(self.x_data, self.y_puissance_turbine_dyn[i], label="Dyn")
+            ax.set_title(f"Puissance turbine {i + 1}")
+            ax.set_xlabel("Itération")
+            ax.set_ylabel("Puissance (MW)")
+            ax.autoscale()  # Autoscale y-axis based on data values
+            ax.legend()
+            fig.savefig(os.path.join(folder, f"EXCEL_puissance_turbine_{i+1}.png"), bbox_inches='tight', dpi=300)  # Save autoscaled figure
+
     def save_figures_as_png(self, folder):
         # Create the folder if it doesn't exist
         if not os.path.exists(folder):
             os.makedirs(folder)
 
-        # Save Puissance totale
-        self.top_fig.savefig(os.path.join(folder, "EXCEL_puissance_totale.png"), bbox_inches='tight', dpi=300)  # Specify dpi=300 for higher resolution
-
-        # Save Puissance turbine 1 à 5
-        for i, plot in enumerate(self.right_side_plots):
-            plot.figure.savefig(os.path.join(folder, f"EXCEL_puissance_turbine_{i+1}.png"), bbox_inches='tight', dpi=300)  # Specify dpi=300 for higher resolution
-
-        # Save Débit turbine 1 à 5
-        for i, plot in enumerate(self.left_side_plots):
-            plot.figure.savefig(os.path.join(folder, f"EXCEL_debit_turbine_{i+1}.png"), bbox_inches='tight', dpi=300)  # Specify dpi=300 for higher resolution
-        self.save_difference(folder=folder)
+        self.save_total_puissance_as_png(folder=folder)
+        self.save_turbine_debit_as_png(folder=folder)
+        self.save_turbine_puissance_as_png(folder=folder)
+        self.save_puissance_differences_as_png(folder=folder)
         self.save_chute_figures_as_png(folder=folder)
         
 
