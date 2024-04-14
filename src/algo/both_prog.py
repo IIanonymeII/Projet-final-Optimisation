@@ -209,9 +209,14 @@ class Simulations:
                 puissance = bb.powerFunction(max_debit[i],chuteNette,
                                              progBB.ARRAY_COEFFICIENTS_TURBINES[i])
                 puissance_totale += puissance
-                df.at["Computed", f"Débit T{i+1}"] = max_debit[i]
+                df.at["Computed", f"Débit T{i+1}"] = max_debit[i] 
                 df.at["Original", f"Débit T{i+1}"] = 0
-                df.at["Computed", f"Puissance T{i+1}"] = puissance
+                df.at["Computed", f"Puissance T{i+1}"] =  puissance
+                df.at["Original", f"Puissance T{i+1}"] = 0
+            else:
+                df.at["Computed", f"Débit T{i+1}"] = 0 
+                df.at["Original", f"Débit T{i+1}"] = 0
+                df.at["Computed", f"Puissance T{i+1}"] =  0
                 df.at["Original", f"Puissance T{i+1}"] = 0
                 
         df["Puissance totale"] = puissance_totale
