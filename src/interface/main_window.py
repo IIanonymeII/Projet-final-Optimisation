@@ -324,7 +324,11 @@ class MainApp:
 
         
         if self.manual_windows:
-            self.manual_windows.destroy()
+            try:
+                self.manual_windows.destroy()
+            except:
+                self.manual_windows = None
+            
 
         df_dyn_result = self.multi_sim.calcul_exemple(debit_total=self.total_flow,
                                                       niveau_amont=self.upstream_elevation,
