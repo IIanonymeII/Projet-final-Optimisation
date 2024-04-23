@@ -5,7 +5,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 from typing import List
-
+from matplotlib.ticker import MaxNLocator
 class ExcelMainWindow(tk.Tk):
     def __init__(self, root: tk.Tk, max_iterations=20):
         self.root = root
@@ -35,8 +35,9 @@ class ExcelMainWindow(tk.Tk):
         self.top_fig = Figure(figsize=(10, 2), dpi=100)
         self.top_plot = self.top_fig.add_subplot(111)
         self.top_plot.set_title("Puissance totale", pad=20)  # Add padding to title
-        self.top_plot.set_xlabel("Temps", labelpad=10)  # Add padding to xlabel
+        self.top_plot.set_xlabel("Numéro ligne excel", labelpad=10)  # Add padding to xlabel
         self.top_plot.set_ylabel("Puissance", labelpad=10)  # Add padding to ylabel
+        self.top_fig.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
         self.top_canvas = FigureCanvasTkAgg(self.top_fig, master=self.top_frame)
         self.top_canvas.draw()
         self.top_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -47,34 +48,37 @@ class ExcelMainWindow(tk.Tk):
         self.bottom_frame.pack(fill=tk.BOTH, expand=True)
 
         # Left side plots
-        self.left_bottom_frame = tk.Frame(self.bottom_frame, bg="green", height=side_plot_height, width=side_plot_width)
+        self.left_bottom_frame = tk.Frame(self.bottom_frame, height=side_plot_height, width=side_plot_width)
         self.left_bottom_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         # Create side plots - Débit pour turbines 1-5 à gauche
         self.left_side_plots = []
+        self.left_side_figures = []
         for i in range(5):
             fig = Figure(figsize=(5, 1), dpi=100)
+            self.left_side_figures.append(fig)
             plot = fig.add_subplot(111)
             plot.set_title(f"Débit turbine {i+1}", pad=10)  # Add padding to title
-            plot.set_xlabel("Temps", labelpad=5)  # Add padding to xlabel
+            plot.set_xlabel("Numéro ligne", labelpad=5)  # Add padding to xlabel
             plot.set_ylabel("Débit", labelpad=5)  # Add padding to ylabel
-
             canvas = FigureCanvasTkAgg(fig, master=self.left_bottom_frame)
             canvas.draw()
             canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
             self.left_side_plots.append(plot)  # Append the left side plot to the list
 
         # Right side plots
-        self.right_bottom_frame = tk.Frame(self.bottom_frame, bg="yellow", height=side_plot_height, width=side_plot_width)
+        self.right_bottom_frame = tk.Frame(self.bottom_frame, height=side_plot_height, width=side_plot_width)
         self.right_bottom_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         # Create side plots - Puissance pour turbines 1-5 à droite
         self.right_side_plots = []
+        self.right_side_figures = []
         for i in range(5):
             fig = Figure(figsize=(5, 1), dpi=100)
+            self.right_side_figures.append(fig)
             plot = fig.add_subplot(111)
             plot.set_title(f"Puissance turbine {i+1}", pad=10)  # Add padding to title
-            plot.set_xlabel("Temps", labelpad=5)  # Add padding to xlabel
+            plot.set_xlabel("Numéro ligne", labelpad=5)  # Add padding to xlabel
             plot.set_ylabel("Puissance", labelpad=5)  # Add padding to ylabel
 
             canvas = FigureCanvasTkAgg(fig, master=self.right_bottom_frame)
@@ -153,11 +157,13 @@ class ExcelMainWindow(tk.Tk):
 
         # Update top plot (Puissance totale)
         self.top_plot.clear()
+        fig = self.top_fig
+        fig.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
         self.top_plot.plot(self.x_data, self.y_puissance_total_original, label="Original")
         self.top_plot.plot(self.x_data, self.y_puissance_total_nomad   , label="Nomad")
         self.top_plot.plot(self.x_data, self.y_puissance_total_dyn     , label="Dyn")
         self.top_plot.set_title(f"Puissance totale (Moyenne: {moyenne_puissance_totale:.2f} MW)", pad=20)  # Add padding to title and display the average
-        self.top_plot.set_xlabel("Temps", labelpad=10)  # Add padding to xlabel
+        self.top_plot.set_xlabel("Numéro de la ligne excel", labelpad=10)  # Add padding to xlabel
         self.top_plot.set_ylabel("Puissance", labelpad=10)  # Add padding to ylabel
         self.top_plot.legend()
         self.top_canvas.draw()
@@ -169,20 +175,25 @@ class ExcelMainWindow(tk.Tk):
             plot.plot(self.x_data, self.y_debit_turbine_nomad[i]   , label="Nomad")
             plot.plot(self.x_data, self.y_debit_turbine_dyn[i]     , label="Dyn")
             plot.set_title(f"Débit turbine {i + 1}", pad=10)  # Add padding to title
-            plot.set_xlabel("Temps", labelpad=5)  # Add padding to xlabel
+            plot.set_xlabel("Numéro de la ligne excel", labelpad=5)  # Add padding to xlabel
             plot.set_ylabel("Débit", labelpad=5)  # Add padding to ylabel
+            fig = self.left_side_figures[i]
+            fig.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
             plot.figure.canvas.draw()
 
 
         for i in range(0,5,1):
+            
             plot = self.right_side_plots[i]
             plot.clear()
             plot.plot(self.x_data, self.y_puissance_turbine_original[i], label="Original")
             plot.plot(self.x_data, self.y_puissance_turbine_nomad[i]   , label="Nomad")
             plot.plot(self.x_data, self.y_puissance_turbine_dyn[i]     , label="Dyn")
             plot.set_title(f"Puissance turbine {i + 1}", pad=10)  # Add padding to title
-            plot.set_xlabel("Temps", labelpad=5)  # Add padding to xlabel
+            plot.set_xlabel("Numéro de la ligne excel", labelpad=5)  # Add padding to xlabel
             plot.set_ylabel("Puissance", labelpad=5)  # Add padding to ylabel
+            fig = self.right_side_figures[i]
+            fig.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
             plot.figure.canvas.draw()
     
     
@@ -196,8 +207,8 @@ class ExcelMainWindow(tk.Tk):
         # Calculate differences
         difference_puissance_dyn = np.array(self.y_puissance_total_dyn) - np.array(self.y_puissance_total_original)  
         difference_puissance_nomad = np.array(self.y_puissance_total_nomad) - np.array(self.y_puissance_total_original) 
-        # print(f"DYN   : dif : {len(difference_puissance_dyn)} => {self.y_puissance_total_dyn} - {self.y_puissance_total_original}")
-        # print(f"NOMAD : dif : {len(difference_puissance_nomad)} => {self.y_puissance_total_nomad} - {self.y_puissance_total_original}")
+        
+        
 
         # Calculate average differences
         moyenne_difference_puissance_dyn = np.mean(difference_puissance_dyn)

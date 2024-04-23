@@ -177,7 +177,6 @@ class Simulations:
                 df_resultDyn = self.run_prog_dyn(debit_total, niveau_amont, active_turbines, max_debit_turbine=[160, 160, 160, 160, 160])
                 row = df_resultDyn.loc[['Computed']].rename(index={'Computed': 'Computed ProgDyn'})
                 df_result = pd.concat([df_result, row])
-            # print(df_result)
             df_result = progDyn.get_chute_nette_for_turbine_result(df_result=df_result,
                                                                list_debit_turbine_dyn=[df_result.at["Computed ProgDyn","Débit T1"],
                                                                                        df_result.at["Computed ProgDyn","Débit T2"],
@@ -240,10 +239,8 @@ class Simulations:
 
             df_resultDyn = self.run_prog_dyn(debit_total, niveau_amont, 
                                              active_turbines, max_debit)
-            # print(df_resultDyn)
             row = df_resultDyn.loc[['Computed']].rename(index={'Computed': 'Computed ProgDyn'})
             df_result = pd.concat([df_result, row])
-        print(df_result)
         df_result = progDyn.get_chute_nette_for_turbine_result(df_result=df_result,
                                                                list_debit_turbine_dyn=[df_result.at["Computed ProgDyn","Débit T1"],
                                                                                        df_result.at["Computed ProgDyn","Débit T2"],

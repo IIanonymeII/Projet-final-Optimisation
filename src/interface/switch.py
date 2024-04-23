@@ -19,7 +19,7 @@ class TwoButtonSwitch(tk.Frame):
         self.button_file.config(state=tk.NORMAL, bg="gray", fg="white")
         if self.switch_callback:
             self.switch_callback(True)
-        # print("Switch is FILE")
+        
     
     def switch_off(self):
         self.switch_state.set(False)
@@ -27,4 +27,4 @@ class TwoButtonSwitch(tk.Frame):
         self.button_manual.config(state=tk.NORMAL, bg="gray", fg="white")
         if self.switch_callback:
             self.switch_callback(False)
-        # print("Switch is MANUAL")
+        

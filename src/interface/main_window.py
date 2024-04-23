@@ -13,7 +13,7 @@ from src.interface.puissance_all_turbine_window import RealTimePlotAppMulti
 
 from src.interface.global_var import FILENAME, STARTING_ROW
 from tkinter import filedialog
-
+from src.interface.Tooltip import ToolTip
 
 class MainApp:
     def __init__(self, root: tk.Tk) -> None:
@@ -81,13 +81,11 @@ class MainApp:
         # Initialize switch state
         self.switch_state = True
 
-
-
-
         self.windows_fenetre_puissance_total = None
         self.windows_fenetre_puissance_turbine = None
 
         self.current_iteration = 0
+        self.current_num_line = 1
 
         self.first_num_line = None
         self.num_iterations = None
@@ -195,11 +193,11 @@ class MainApp:
     def print_check(self, idx):
         checkbox_var = self.turbine_checkboxes[idx]
         if checkbox_var.get():
-            # print(f"Turbine {idx+1}: Check")
+            
             self.debit_max_inputs[idx].delete(0, tk.END)
             self.debit_max_inputs[idx].insert(tk.END, "160")
         else:
-            # print(f"Turbine {idx+1}: CheckBox is not checked.")
+            
             self.debit_max_inputs[idx].delete(0, tk.END)
             self.debit_max_inputs[idx].insert(tk.END, "0")
 
@@ -242,8 +240,9 @@ class MainApp:
 
         entry_frame_excel_name = ttk.Frame(self.blue_frame)
         entry_frame_excel_name.pack(padx=5, pady=5)
-        ttk.Label(entry_frame_excel_name, 
-                  text="Fichier de données:").pack(side=tk.LEFT)
+        label = ttk.Label(entry_frame_excel_name, 
+                  text="Fichier de données:")
+        label.pack(side=tk.LEFT)
         self.excel_file_name_entry = tk.Label(entry_frame_excel_name, 
                             text = "Aucun fichier choisi", 
                             fg = "blue")
@@ -258,8 +257,10 @@ class MainApp:
 
         entry_frame_image_output = ttk.Frame(self.blue_frame)
         entry_frame_image_output.pack(padx=5, pady=5)
-        ttk.Label(entry_frame_image_output, 
-                  text="Dossier de sauvegarde des images:").pack(side=tk.LEFT)
+        lab = ttk.Label(entry_frame_image_output, 
+                  text="Dossier de sauvegarde des images:")
+        lab.pack(side=tk.LEFT)
+        ToolTip(lab, "Dans ce dossier seront sauvegardés \ntous les graphes de la simulation.\nLaisser vide pour ne rien sauvegarder.")
         self.image_dir_path = tk.Label(entry_frame_image_output, 
                             text = "Aucun dossier choisi", 
                             fg = "blue")
@@ -290,7 +291,9 @@ class MainApp:
         if self.num_iterations < 0:
             tk.messagebox.showerror("Erreur", "num_iterations should be sup to 0")
             return 
-        self.current_iteration = self.first_num_line - 1
+        self.current_iteration = 0
+        self.current_num_line = self.first_num_line - 1
+        self.iterations_max = self.num_iterations
 
         if self.windows_fenetre_puissance_total:
             self.windows_fenetre_puissance_total.destroy()
@@ -403,10 +406,6 @@ class MainApp:
                 num_iterations = int(self.num_iterations_entry.get())
                 excel_file_name = self.excel_file_name_entry.cget("text")
                 self.image_output_folder = self.image_dir_path.cget("text")
-                print("First Num Line:", first_num_line)
-                print("Num of Iterations:", num_iterations)
-                print("Excel File Name:", excel_file_name)
-                print("Image Output Folder:", self.image_output_folder)
                 # You can add the code to handle Excel mode here if needed
             except ValueError:
                 tk.messagebox.showerror("Error", "Données non valides pour le mode excel. Veuillez saisir des valeurs numériques valides.")
@@ -442,10 +441,10 @@ class MainApp:
         This method updates the simulation state iteratively and visualizes it.
         """
         if self.plot_excel_windows_total:
-            if self.current_iteration < (self.first_num_line + self.num_iterations):
+            if self.current_iteration < (self.num_iterations):
                 self.current_iteration += 1
-
-                df_dyn_result = self.multi_sim.calcul_row(row_columns_index=STARTING_ROW, row_to_calculate=STARTING_ROW+self.current_iteration)
+                self.current_num_line += 1
+                df_dyn_result = self.multi_sim.calcul_row(row_columns_index=STARTING_ROW, row_to_calculate=STARTING_ROW+self.current_num_line)
 
                 dyn_puissance_total = df_dyn_result.at["Computed ProgDyn","Puissance totale"]
                 dyn_puissance_turbine_1 = df_dyn_result.at["Computed ProgDyn","Puissance T1"]
@@ -511,7 +510,7 @@ class MainApp:
                 nomad_chute_turbine_5 = df_dyn_result.at["Computed BB","Chute Nette T5"]
 
 
-                self.plot_excel_windows_total.add_value(x=self.current_iteration,
+                self.plot_excel_windows_total.add_value(x=self.current_num_line,
                                                         y_puissance_total_dyn= dyn_puissance_total,
                                                         y_list_debit_turbine_dyn= [dyn_debit_turbine_1, dyn_debit_turbine_2, dyn_debit_turbine_3,dyn_debit_turbine_4,dyn_debit_turbine_5],
                                                         y_list_puissance_turbine_dyn=[dyn_puissance_turbine_1, dyn_puissance_turbine_2, dyn_puissance_turbine_3,dyn_puissance_turbine_4,dyn_puissance_turbine_5],
@@ -528,16 +527,17 @@ class MainApp:
                                                         y_chute_turbine_nomad=[nomad_chute_turbine_1, nomad_chute_turbine_2, nomad_chute_turbine_3, nomad_chute_turbine_4, nomad_chute_turbine_5],
                                                         y_chute_turbine_dyn=[dyn_chute_turbine_1, dyn_chute_turbine_2, dyn_chute_turbine_3, dyn_chute_turbine_4, dyn_chute_turbine_5])
     #           
-                self.status_label.config(text=f"Statut de la simulation : En cours ({self.current_iteration}/{self.iterations_max})")
+                self.status_label.config(text=f"Statut de la simulation : En cours ({self.current_iteration}/{self.num_iterations})")
                 self.root.after(100, self.animate)
             else:
-                print("final")
+                self.status_label.config(text=f"Statut de la simulation : Finie")
                 self.plot_excel_windows_total.plot_final()
                 self.plot_excel_windows_total.save_figures_as_png(folder=self.image_output_folder)
 
     def clear_and_reset(self) -> None:
         """Clear and reset the simulation parameters."""
         self.current_iteration = 0
+        self.current_num_line = 0
         self.iterations_max = None
         self.plot_excel_windows_total = None
 

@@ -99,12 +99,8 @@ def getStates(turbines: list, max_debit_turbine: List[float]) -> Dict[int,List[i
   result: Dict[int, List[int]] = {}
   result[turbines[0]] = [DEBIT_TOTAL]
   for i, turbine in enumerate(turbines[1:]):
-    # print(f"turbine : {turbine}")
     debit_restant = max_debit_turbine[turbine-1:]
     debit_avant = max_debit_turbine[:turbine-1]
-
-    # print(f"debit restant  : {debit_restant} => {np.sum(debit_restant)}")
-    # print(f"debit avant  : {debit_avant} => {(DEBIT_TOTAL - np.sum(debit_avant))} ")
 
     # Débit max restant: Max débit * nb turbines restantes 
     # ou QTot si Max débit * nb turbines restantes > Qtot
@@ -112,8 +108,8 @@ def getStates(turbines: list, max_debit_turbine: List[float]) -> Dict[int,List[i
       debit_restant_max = np.sum(debit_restant)
     else:
       debit_restant_max = DEBIT_TOTAL
-    # print(f"debit max : {debit_restant_max}")
-    # print(f"debit ")
+    
+    
     debit_restant_max = find_nearest_number(reference_list=REF,number=debit_restant_max, is_max=True)
     debit_restant_max = round(debit_restant_max,2)
 
@@ -192,7 +188,7 @@ def getOptimalSolution(stage: pd.DataFrame, turbineID: int) -> pd.DataFrame:
 
 def max_on_all_turbine(max_debit_turbines, turbines_working: List[bool]):
   turbines = [index for index, value in enumerate(turbines_working, start=1) if value]
-  # print(turbines)
+  
   loopForwardPass
   listeEtats = {}
   debits_possible = [[],[],[],[],[]]
@@ -203,18 +199,13 @@ def max_on_all_turbine(max_debit_turbines, turbines_working: List[bool]):
                        listeEtats=listeEtats,
                        debits_possible=debits_possible)
 
-  # print(listeEtats)
-  # print(debits_possible)
+  
+  
 
-  for turbineID in emptyStages:
-    print(f"{turbineID}")
-    print("====")
-    print(f"{emptyStages[turbineID]}")
-    print("------")
     # xn, fn = addOptimalResultCols(stage[turbineID], turbineID)
 
   filledStages = backwardPass(turbines, emptyStages,max_debit_turbine)
-  # print(stage[turbineID])
+  
 
 
 
@@ -287,7 +278,7 @@ def fillPreviousStages(stage: pd.DataFrame,
   debit_turbine_columns = stage.columns
   addOptimalResultCols(stage, turbineID)
   
-  # print(previousStage.columns)
+  
 
   for debit_restant in stage.index:
     for debit_turbine in debit_turbine_columns:
@@ -295,20 +286,20 @@ def fillPreviousStages(stage: pd.DataFrame,
       
 
       debit_for_turbine_after = round(debit_restant - debit_turbine,2)
-      # print(f"debit total : {debit_restant_max_for_turbine_after} ",end=" ")
-      # print(f"debit_restant {debit_restant} / debit_turbine {debit_turbine} => {debit_for_turbine_after}")
+      
+      
       
       if debit_for_turbine_after < 0 \
       or  debit_for_turbine_after > debit_restant_max_for_turbine_after \
       or  debit_for_turbine_after not in previousStage.index :
-        # print(f"{(debit_for_turbine_after < 0)} or {(debit_for_turbine_after > debit_restant_max_for_turbine_after)} or {(debit_for_turbine_after not in previousStage.index)}")
+        
 
         stage.loc[debit_restant, debit_turbine] = "-"
         debit_for_turbine_after = None
 
       if debit_for_turbine_after != None:
-        # print("dif")
-        # print(f"[{debit_for_turbine_after}, F{previousTurbineID}]")
+        
+        
         puissance_add = previousStage.loc[debit_for_turbine_after, f"F{previousTurbineID}"]
         puissance = 0
         if puissance_add != None:
@@ -325,9 +316,9 @@ def backwardPass(turbines: list, emptyStages, max_debit_turbine):
   nb_turbines = len(turbines)
   filledStages = {}
   for i, turbineID in enumerate(turbines[::-1]):
-    # print(turbineID)
+    
     if turbineID == turbines[-1]:
-      # print("first")
+      
       filledStages[turbineID] = fillLastStage(copy.copy(emptyStages[turbineID]),
                                   ARRAY_COEFFICIENTS_TURBINES[turbineID - 1],
                                   turbineID)
@@ -348,9 +339,9 @@ def forward_pass(stage : pd.DataFrame,
                  prevStageID: int) -> pd.DataFrame:
   debit_restant = stage.index[0]
   debit_choose = stage.loc[debit_restant,f"X{prevStageID}"]
-  # print(prevStageID)
-  # print(f"{debit_restant} / {debit_choose}")
-  # print(stage)
+  
+  
+  
 
   debit_restant_after = debit_restant - debit_choose
   debit_restant_after = round(debit_restant_after,2)
@@ -363,7 +354,7 @@ def loopForwardPass(turbines, filledStages):
     prevStage = turbines[0]
     dfs_choose[prevStage] = copy.copy(filledStages[prevStage])
     for i in turbines[1:]:
-      # print(i)
+      
       dfs_choose[i] = forward_pass(stage = copy.copy(dfs_choose[prevStage]),
                                  df_tableau_turbine_after = copy.copy(filledStages[i]),
                                  prevStageID = prevStage)
@@ -374,27 +365,27 @@ def dynamicProgrammingAlgorithm(turbines_working,
                                 max_debit_turbine : List[float]):
   
   turbines = [index for index, value in enumerate(turbines_working, start=1) if value]
-  # print(turbines)
+  
   listeEtats = getStates(turbines, max_debit_turbine)
-  # print(" ==== LIST ETATS ==== ")
-  # print(f" 1 : {listeEtats[1]}")
-  # # print(f" 2 : {listeEtats[2]}")
-  # print(f" 3 : {listeEtats[3]}")
-  # print(f" 4 : {listeEtats[4]}")
-  # print(f" 5 : {listeEtats[5]}")
+  
+  
+  # 
+  
+  
+  
   debits_possible = getPossibleValues(turbines_working=turbines_working, 
                                       max_debit_list=max_debit_turbine)
-  # print("==== DEBIT POSSIBLE ====")
-  # print(debits_possible)
+  
+  
   
   
   emptyStages = createStages(turbines, listeEtats, debits_possible)
-  # print("==== EMPTY STAGE ===")
-  # print(emptyStages)
-  # print("=================")
+  
+  
+  
   filledStages = backwardPass(turbines, emptyStages,max_debit_turbine)
-  # print(filledStages)
-  # print("=======")
+  
+  
   dfs_choose = loopForwardPass(turbines, filledStages)
   return dfs_choose
 
@@ -409,7 +400,7 @@ def extractResults(dfResult, actives_turbines, result):
       colNamePuissance = "Puissance T" + str(IDturbine)
       if (i < len(actives_turbines) - 1):
         nextTurbine = actives_turbines[i+1]
-        # print(f'{IDturbine}/ {result[IDturbine]} => {nextTurbine}/{result[nextTurbine]}')
+        
 
 
         currentPuissance = result[IDturbine][f"F{IDturbine}"].values[0] - result[nextTurbine][f'F{nextTurbine}'].values[0]
